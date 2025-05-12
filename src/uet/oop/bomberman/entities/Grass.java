@@ -12,4 +12,8 @@ public class Grass extends Entity {
     public void update() {
 
     }
+
+    public char getSymbol() {
+        return ' ';
+    }
 }

@@ -7,18 +7,20 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
+import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.Bomber;
 import uet.oop.bomberman.entities.Entity;
 import uet.oop.bomberman.entities.Grass;
 import uet.oop.bomberman.entities.Wall;
 import uet.oop.bomberman.graphics.Sprite;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BombermanGame extends Application {
     
-    public static final int WIDTH = 20;
+    public static final int WIDTH = 30;
     public static final int HEIGHT = 15;
     
     private GraphicsContext gc;
@@ -27,12 +29,12 @@ public class BombermanGame extends Application {
     private List<Entity> stillObjects = new ArrayList<>();
 
 
-    public static void main(String[] args) {
-        Application.launch(BombermanGame.class);
-    }
+//    public static void main(String[] args) {
+//        Application.launch(BombermanGame.class);
+//    }
 
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws IOException {
         // Tao Canvas
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
@@ -59,23 +61,18 @@ public class BombermanGame extends Application {
 
         createMap();
 
-        Entity bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
+        Bomber bomberman = new Bomber(1, 1, Sprite.player_right.getFxImage());
         entities.add(bomberman);
+        
+//        scene.requestFocus();
+        bomberman.bomberMove(scene, bomberman);
     }
 
-    public void createMap() {
-        for (int i = 0; i < WIDTH; i++) {
-            for (int j = 0; j < HEIGHT; j++) {
-                Entity object;
-                if (j == 0 || j == HEIGHT - 1 || i == 0 || i == WIDTH - 1) {
-                    object = new Wall(i, j, Sprite.wall.getFxImage());
-                }
-                else {
-                    object = new Grass(i, j, Sprite.grass.getFxImage());
-                }
-                stillObjects.add(object);
-            }
-        }
+    public void createMap() throws IOException {
+        LevelLoader levelLoader = new LevelLoader();
+        LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level1.txt");
+        entities = levelLoader.loadEntities(levelInfo);
+        stillObjects = levelLoader.loadEntities(levelInfo);
     }
 
     public void update() {

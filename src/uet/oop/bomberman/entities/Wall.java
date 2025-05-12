@@ -12,4 +12,8 @@ public class Wall extends Entity {
     public void update() {
 
     }
+
+    public char getSymbol() {
+        return '#';
+    }
 }
