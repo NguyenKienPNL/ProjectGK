@@ -1,8 +1,6 @@
 package uet.oop.bomberman.engine;
 
-import uet.oop.bomberman.entities.Entity;
-import uet.oop.bomberman.entities.Grass;
-import uet.oop.bomberman.entities.Wall;
+import uet.oop.bomberman.entities.*;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.graphics.SpriteSheet;
 
@@ -59,13 +57,27 @@ public class LevelLoader {
         ArrayList<Entity> entities = new ArrayList<>();
         for (int i = 0; i < levelInfo.rows; i++) {
             for (int j = 0; j < levelInfo.cols; j++) {
-                if (levelInfo.map[i][j] == '#') {
-                    entities.add(new Wall(j, i, Sprite.wall.getFxImage()));
-                } else {
-                    entities.add(new Grass(j, i, Sprite.grass.getFxImage()));
+                if (levelInfo.map[i][j] == 'p') {
+                    entities.add(new Bomber(j, i, Sprite.player_right.getFxImage()));
                 }
             }
         }
         return entities;
+    }
+
+    public ArrayList<Entity> loadStillObjects(LevelInfo levelInfo) {
+        ArrayList<Entity> StillObjects = new ArrayList<>();
+        for (int i = 0; i < levelInfo.rows; i++) {
+            for (int j = 0; j < levelInfo.cols; j++) {
+                if (levelInfo.map[i][j] == '#') {
+                    StillObjects.add(new Wall(j, i, Sprite.wall.getFxImage()));
+                } else if (levelInfo.map[i][j] == '*') {
+                    StillObjects.add(new Brick(j, i, Sprite.brick.getFxImage()));
+                } else {
+                    StillObjects.add(new Grass(j, i, Sprite.grass.getFxImage()));
+                }
+            }
+        }
+        return StillObjects;
     }
 }

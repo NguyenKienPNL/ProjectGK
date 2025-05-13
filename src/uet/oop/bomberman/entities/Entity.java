@@ -6,6 +6,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import uet.oop.bomberman.graphics.Sprite;
+import uet.oop.bomberman.BombermanGame;
+
+import java.util.ArrayList;
+
+import static uet.oop.bomberman.BombermanGame.WIDTH;
+import static uet.oop.bomberman.BombermanGame.HEIGHT;
 
 public abstract class Entity {
     //Tọa độ X tính từ góc trái trên trong Canvas
@@ -20,6 +26,16 @@ public abstract class Entity {
     protected int realY;
 
     protected Image img;
+    protected ArrayList<Image> left_images = new ArrayList<>();
+    protected ArrayList<Image> right_images = new ArrayList<>();
+    protected ArrayList<Image> up_images = new ArrayList<>();
+    protected ArrayList<Image> down_images = new ArrayList<>();
+    protected ArrayList<Image> dead_images = new ArrayList<>();
+
+    protected int currentDirection;
+    protected int previousDirection;
+    protected int frameIndex;
+    protected int speed;
 
     //Khởi tạo đối tượng, chuyển từ tọa độ đơn vị sang tọa độ trong canvas
     public Entity( int xUnit, int yUnit, Image img) {
@@ -28,6 +44,26 @@ public abstract class Entity {
         this.realX = xUnit * Sprite.SCALED_SIZE;
         this.realY = yUnit * Sprite.SCALED_SIZE;
         this.img = img;
+        this.currentDirection = 0;
+        this.previousDirection = -1;
+    }
+
+    public Entity(int xUnit, int yUnit, int speed, Image img, ArrayList<Image> left_images,
+                  ArrayList<Image> right_images, ArrayList<Image> up_images, ArrayList<Image> down_images, ArrayList<Image> dead_images) {
+        this.x = xUnit;
+        this.y = yUnit;
+        this.realX = xUnit * Sprite.SCALED_SIZE;
+        this.realY = yUnit * Sprite.SCALED_SIZE;
+        this.img = img;
+        this.left_images = left_images;
+        this.right_images = right_images;
+        this.up_images = up_images;
+        this.down_images = down_images;
+        this.dead_images = dead_images;
+        this.currentDirection = 0;
+        this.previousDirection = -1;
+        this.speed = speed;
+        this.frameIndex = 0;
     }
 
     public void render(GraphicsContext gc) {
@@ -77,5 +113,45 @@ public abstract class Entity {
 
     public void setImg(Image img) {
         this.img = img;
+    }
+
+    public Image getNextLeftImage() {
+        if (currentDirection != previousDirection) {
+           frameIndex = 0;
+        }
+        frameIndex = (frameIndex + 1) % left_images.size();
+        previousDirection = currentDirection;
+        currentDirection = 1;
+        return left_images.get(frameIndex);
+    }
+
+    public Image getNextRightImage() {
+        if (currentDirection != previousDirection) {
+            frameIndex = 0;
+        }
+        frameIndex = (frameIndex + 1) % right_images.size();
+        previousDirection = currentDirection;
+        currentDirection = 2;
+        return right_images.get(frameIndex);
+    }
+
+    public Image getNextUpImage() {
+        if (currentDirection != previousDirection) {
+            frameIndex = 0;
+        }
+        frameIndex = (frameIndex + 1) % up_images.size();
+        previousDirection = currentDirection;
+        currentDirection = 3;
+        return up_images.get(frameIndex);
+    }
+
+    public Image getNextDownImage() {
+        if (currentDirection != previousDirection) {
+            frameIndex = 0;
+        }
+        frameIndex = (frameIndex + 1) % down_images.size();
+        previousDirection = currentDirection;
+        currentDirection = 4;
+        return down_images.get(frameIndex);
     }
 }
