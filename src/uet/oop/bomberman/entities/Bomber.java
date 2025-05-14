@@ -14,6 +14,7 @@ import static uet.oop.bomberman.BombermanGame.validate;
 public class Bomber extends Entity {
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
+    private int currentLevel;
 
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
@@ -35,6 +36,15 @@ public class Bomber extends Entity {
         down_images.add(Sprite.player_down.getFxImage());
         down_images.add(Sprite.player_down_1.getFxImage());
         down_images.add(Sprite.player_down_2.getFxImage());
+    }
+
+    // Getter và setter cho currentLevel
+    public int getCurrentLevel() {
+        return currentLevel;
+    }
+
+    public void setCurrentLevel(int currentLevel) {
+        this.currentLevel = currentLevel;
     }
 
     @Override

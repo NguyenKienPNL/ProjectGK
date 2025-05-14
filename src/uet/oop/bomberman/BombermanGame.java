@@ -7,9 +7,13 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
+import uet.oop.bomberman.UI.GameOverScreen;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
 import uet.oop.bomberman.graphics.Sprite;
+import uet.oop.bomberman.UI.MainApp;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +26,7 @@ public class BombermanGame extends Application {
 
     private GraphicsContext gc;
     private Canvas canvas;
+    private Stage stage;
 
     // List động và tĩnh tách riêng
     public static List<Entity> entities = new ArrayList<>();
@@ -30,8 +35,14 @@ public class BombermanGame extends Application {
     // Bomber tham chiếu riêng nếu cần dùng trực tiếp
     private Bomber bomberman;
 
+    public BombermanGame(Stage stage) {
+        this.stage = stage;
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
+        this.stage = stage;  // Cập nhật stage khi khởi tạo
+
         // Canvas setup
         stage.setTitle("Bomberman");
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
@@ -113,4 +124,115 @@ public class BombermanGame extends Application {
     public static boolean validate(int x, int y) {
         return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 && !hasObstacleAt(x, y));
     }
+
+    // Hàm Game Over
+    public void gameOver(MainApp mainApp) {
+        GameOverScreen gameOverScreen = new GameOverScreen(mainApp);
+        Scene gameOverScene = new Scene(gameOverScreen);
+        stage.setScene(gameOverScene);
+    }
+
+    public void continueGame() {
+        System.out.println("Continuing game...");
+
+        try {
+            // Tạo LevelLoader để tải lại thông tin từ file lưu
+            LevelLoader levelLoader = new LevelLoader();
+
+            // Tải cấp độ đã lưu
+            LevelLoader.LevelInfo levelInfo = levelLoader.loadSavedLevel("res/savegame.txt");
+
+            // Xóa các entity và object cũ
+            entities.clear();
+            stillObjects.clear();
+
+            // Load lại các đối tượng tĩnh và động từ cấp độ đã lưu
+            stillObjects = levelLoader.loadStillObjects(levelInfo);
+            List<Entity> loadedEntities = levelLoader.loadEntities(levelInfo);
+            entities.addAll(loadedEntities);
+
+            // Tìm Bomber trong danh sách entities
+            for (Entity e : entities) {
+                if (e instanceof Bomber) {
+                    bomberman = (Bomber) e;
+                    break;
+                }
+            }
+
+            // Cập nhật các sự kiện từ bàn phím cho Bomber
+            Scene scene = stage.getScene();
+            bomberman.handleKeyEvent(scene);
+
+            // Tiếp tục vòng lặp game
+            AnimationTimer timer = new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    update(); // Cập nhật trạng thái game
+                    render(); // Vẽ lại màn hình
+                }
+            };
+            timer.start(); // Bắt đầu vòng lặp game
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error loading saved game.");
+        }
+    }
+
+    public void saveGame(String filePath) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+
+        // Lưu thông tin cấp độ, hàng và cột
+        writer.write(bomberman.getCurrentLevel() + " " + HEIGHT + " " + WIDTH); // Ví dụ lưu cấp độ hiện tại và kích thước map
+        writer.newLine();
+
+        // Lưu bản đồ (map) từ trạng thái của các đối tượng trong stillObjects và entities
+        for (int i = 0; i < HEIGHT; i++) {
+            StringBuilder line = new StringBuilder();
+            for (int j = 0; j < WIDTH; j++) {
+                char mapChar = ' '; // Mặc định là Grass
+                // Kiểm tra các đối tượng tĩnh
+                for (Entity entity : stillObjects) {
+                    if (entity.getX() == j && entity.getY() == i) {
+                        if (entity instanceof Wall) mapChar = '#';
+                        if (entity instanceof Brick) mapChar = '*';
+                        break;
+                    }
+                }
+                // Kiểm tra các đối tượng động
+                for (Entity entity : entities) {
+                    if (entity.getX() == j && entity.getY() == i) {
+                        if (entity instanceof Bomber) mapChar = 'p'; // 'p' cho Bomber
+                        if (entity instanceof Balloom) mapChar = '1'; // '1' cho Balloom
+                        if (entity instanceof Oneal) mapChar = '2'; // '2' cho Oneal
+                        break;
+                    }
+                }
+                line.append(mapChar);
+            }
+            writer.write(line.toString());
+            writer.newLine();
+        }
+
+        writer.close();
+    }
+
+    // Hàm Game Over đã đổi tên
+    public void endGame(MainApp mainApp) {
+        // Lưu game trước khi kết thúc
+        try {
+            saveGame("res/savegame.txt"); // Lưu game vào file savegame.txt
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error saving game.");
+        }
+
+        // Hiển thị màn hình GameOver
+        GameOverScreen gameOverScreen = new GameOverScreen(mainApp);
+        Scene gameOverScene = new Scene(gameOverScreen);
+        stage.setScene(gameOverScene);
+    }
+
+
+
 }

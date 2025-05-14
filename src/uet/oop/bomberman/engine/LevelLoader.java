@@ -59,6 +59,10 @@ public class LevelLoader {
             for (int j = 0; j < levelInfo.cols; j++) {
                 if (levelInfo.map[i][j] == 'p') {
                     entities.add(new Bomber(j, i, Sprite.player_right.getFxImage()));
+                } else if (levelInfo.map[i][j] == '1') {
+                    entities.add(new Balloom(j, i, Sprite.balloom_right1.getFxImage()));
+                } else if (levelInfo.map[i][j] == '2') {
+                    entities.add(new Oneal(j, i, Sprite.oneal_right1.getFxImage()));
                 }
             }
         }
@@ -80,4 +84,37 @@ public class LevelLoader {
         }
         return StillObjects;
     }
+
+    public LevelInfo loadSavedLevel(String filePath) throws IOException {
+        // Đọc file lưu trạng thái game
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+
+        // Đọc thông tin cấp độ, hàng và cột từ file lưu
+        String[] header = reader.readLine().split(" ");
+        int level = Integer.parseInt(header[0]);
+        int rows = Integer.parseInt(header[1]);
+        int cols = Integer.parseInt(header[2]);
+
+        // Tạo mảng 2 chiều cho bản đồ
+        char[][] map = new char[rows][cols];
+
+        // Đọc từng dòng của bản đồ từ file
+        for (int i = 0; i < rows; i++) {
+            String line = reader.readLine();
+            if (line == null) {
+                throw new IOException("File không đủ dữ liệu");
+            }
+            for (int j = 0; j < cols; j++) {
+                if (j < line.length()) {
+                    map[i][j] = line.charAt(j);
+                } else {
+                    map[i][j] = ' '; // Điền vào dấu cách nếu thiếu
+                }
+            }
+        }
+        reader.close();
+
+        return new LevelInfo(level, rows, cols, map);
+    }
+
 }
