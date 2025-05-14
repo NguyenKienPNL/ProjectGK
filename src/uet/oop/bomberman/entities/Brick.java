@@ -1,13 +1,13 @@
 package uet.oop.bomberman.entities;
 
-import com.sun.tools.javac.jvm.Items;
+import uet.oop.bomberman.entities.Items.Item;
 import javafx.scene.image.Image;
 
 public class Brick extends Entity {
     private boolean destroyed = false;
     private int animate = 0;
 //    thoi gian gach co hieu ung no
-    private int maxanimate = 30;
+    private static final int maxanimate = 30;
 
 //    them hieu ung no
     private Image[] explosionFrames = new Image[] {
