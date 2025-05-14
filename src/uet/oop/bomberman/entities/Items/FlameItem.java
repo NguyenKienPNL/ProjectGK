@@ -24,5 +24,6 @@ public class FlameItem extends Item {
     @Override
     public void applyEffect(Bomber bomber) {
         bomber.increaseFlameLength();
+        bomber.setFlameBufftime(bomber.BUFF);
     }
 }

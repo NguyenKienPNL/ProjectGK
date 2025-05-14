@@ -16,7 +16,11 @@ public class Bomber extends Entity {
 
     private int bombCount;
     private int bombRadius;
-
+    private int flameBufftime = 0;
+    private int speedBufftime = 0;
+    private int bombBufftime = 0;
+    public static final int BUFF = 200;
+//    thoi gian duoc nhan buff
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
         this.speed = 8;
@@ -45,6 +49,27 @@ public class Bomber extends Entity {
 //        this.realY = this.y * Sprite.SCALED_SIZE;
         this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
         this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
+//        het time buff tro ve trang thai ban dau
+        if(speedBufftime > 0) {
+            speedBufftime--;
+            if(speedBufftime == 0) {
+                decreaseSpeed();
+            }
+        }
+
+        if(flameBufftime > 0) {
+            flameBufftime--;
+            if(flameBufftime == 0) {
+                decreaseFlameLength();
+            }
+        }
+
+        if(bombBufftime > 0) {
+            bombBufftime--;
+            if(bombBufftime == 0) {
+                decreaseBomb();
+            }
+        }
     }
 
     public void handleKeyEvent(Scene scene) {
@@ -115,5 +140,17 @@ public class Bomber extends Entity {
 
     public void decreaseSpeed() {
         speed--;
+    }
+
+    public void setBombBufftime(int bomb) {
+        this.bombBufftime = bomb;
+    }
+
+    public void setFlameBufftime(int flame) {
+        this.flameBufftime = flame;
+    }
+
+    public void setSpeedBufftime(int speed) {
+        this.speedBufftime = speed;
     }
 }

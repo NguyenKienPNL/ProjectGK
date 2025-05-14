@@ -9,5 +9,6 @@ public class BombItem extends Item {
      @Override
     public void applyEffect(Bomber bomber) {
         bomber.increaseBomb();
+        bomber.setBombBufftime(bomber.BUFF);
      }
 }

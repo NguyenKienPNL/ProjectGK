@@ -11,5 +11,6 @@ public class SpeedItem extends Item {
     @Override
     public void applyEffect(Bomber bomber) {
         bomber.increaseSpeed();
+        bomber.setSpeedBufftime(bomber.BUFF);
     }
 }
