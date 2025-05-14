@@ -1,5 +1,6 @@
 package uet.oop.bomberman.entities;
 
+import com.sun.tools.javac.jvm.Items;
 import javafx.scene.image.Image;
 
 public class Brick extends Entity {
@@ -9,7 +10,7 @@ public class Brick extends Entity {
     private int maxanimate = 30;
 
 //    them hieu ung no
-    private Image[] explosionFramers = new Image[] {
+    private Image[] explosionFrames = new Image[] {
             new Image("sprites/brick_exploded.png"),
              new Image("sprites/brick_exploded1.png"),
               new Image("sprites/brick_exploded.png")
@@ -26,13 +27,16 @@ public class Brick extends Entity {
             animate++;
             int frame = animate / 10;
 //            hieu ung no
-            if(frame < explosionFramers.length) {
-                img = explosionFramers[frame];
+            if(frame < explosionFrames.length) {
+                img = explosionFrames[frame];
             } else {
                 img = null;
             }
         }
     }
+
+
+
 //    khi bom no thi .ham nay
     public void destroy() {
         destroyed = true;
