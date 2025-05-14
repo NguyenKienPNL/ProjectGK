@@ -92,4 +92,28 @@ public class Bomber extends Entity {
     public void setBombRadius(int bombRadius) {
         this.bombRadius = bombRadius;
     }
+
+    public void increaseBomb() {
+        bombCount++;
+    }
+
+    public void decreaseBomb() {
+        bombCount--;
+    }
+
+    public void increaseFlameLength() {
+        bombRadius++;
+    }
+
+    public void decreaseFlameLength() {
+        bombRadius--;
+    }
+
+    public void increaseSpeed() {
+        speed++;
+    }
+
+    public void decreaseSpeed() {
+        speed--;
+    }
 }
