@@ -39,7 +39,5 @@ public class Brick extends Entity {
         animate = 0;
     }
 
-    public char getSymbol() {
-        return '*';
-    }
+
 }

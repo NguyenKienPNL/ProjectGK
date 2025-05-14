@@ -28,7 +28,11 @@ public class BombermanGame extends Application {
     public static List<Entity> stillObjects = new ArrayList<>();
 
     // Bomber tham chiếu riêng nếu cần dùng trực tiếp
-    private Bomber bomberman;
+    private static Bomber bomberman;
+
+    public static Bomber getBomberman() {
+        return bomberman;
+    }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -109,8 +113,21 @@ public class BombermanGame extends Application {
         return false;
     }
 
-    // Kiểm tra hợp lệ khi di chuyển
+    // Kiểm tra hợp lệ khi di chuyển (tile-based)
     public static boolean validate(int x, int y) {
         return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 && !hasObstacleAt(x, y));
     }
+
+    public static boolean validatePixelMove(int realX, int realY) {
+        int tileLeft = realX / Sprite.SCALED_SIZE;
+        int tileRight = (realX + Sprite.SCALED_SIZE - 1) / Sprite.SCALED_SIZE;
+        int tileTop = realY / Sprite.SCALED_SIZE;
+        int tileBottom = (realY + Sprite.SCALED_SIZE - 1) / Sprite.SCALED_SIZE;
+
+        return validate(tileLeft, tileTop)
+                && validate(tileRight, tileTop)
+                && validate(tileLeft, tileBottom)
+                && validate(tileRight, tileBottom);
+    }
+
 }

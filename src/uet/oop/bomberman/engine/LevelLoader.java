@@ -59,6 +59,10 @@ public class LevelLoader {
             for (int j = 0; j < levelInfo.cols; j++) {
                 if (levelInfo.map[i][j] == 'p') {
                     entities.add(new Bomber(j, i, Sprite.player_right.getFxImage()));
+                } else if (levelInfo.map[i][j] == '1') {
+                    entities.add(new Balloom(j, i, Sprite.balloom_right1.getFxImage()));
+                } else if (levelInfo.map[i][j] == '2') {
+                    entities.add(new Oneal(j, i, Sprite.oneal_right1.getFxImage()));
                 }
             }
         }
