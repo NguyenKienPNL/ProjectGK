@@ -8,17 +8,28 @@ import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static uet.oop.bomberman.BombermanGame.validate;
+import static uet.oop.bomberman.BombermanGame.validatePixelMove;
 
 public class Bomber extends Entity {
+
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private int currentLevel;
 
+
+    private int bombCount;
+    private int bombRadius;
+    private int flameBufftime = 0;
+    private int speedBufftime = 0;
+    private int bombBufftime = 0;
+    public static final int BUFF = 200;
+//    thoi gian duoc nhan buff
+
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
-        this.speed = 1;
+        this.speed = 8;
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());
@@ -49,57 +60,112 @@ public class Bomber extends Entity {
 
     @Override
     public void update() {
-        // Mỗi frame cập nhật lại vị trí thực để vẽ
-        this.realX = this.x * Sprite.SCALED_SIZE;
-        this.realY = this.y * Sprite.SCALED_SIZE;
+//        this.realX = this.x * Sprite.SCALED_SIZE;
+//        this.realY = this.y * Sprite.SCALED_SIZE;
+        this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
+        this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
+//        het time buff tro ve trang thai ban dau
+        if(speedBufftime > 0) {
+            speedBufftime--;
+            if(speedBufftime == 0) {
+                decreaseSpeed();
+            }
+        }
+
+        if(flameBufftime > 0) {
+            flameBufftime--;
+            if(flameBufftime == 0) {
+                decreaseFlameLength();
+            }
+        }
+
+        if(bombBufftime > 0) {
+            bombBufftime--;
+            if(bombBufftime == 0) {
+                decreaseBomb();
+            }
+        }
     }
 
     public void handleKeyEvent(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            KeyCode code = event.getCode();
-            if (!pressedKeys.contains(code)) {
-                pressedKeys.add(code);
-                handleMovement(code);
+            switch (event.getCode()) {
+                case W:
+                    setImg(getNextUpImage());
+                    align(0, -1);
+                    moveWithCollision(0, -1);
+                    break;
+                case S:
+                    setImg(getNextDownImage());
+                    align(0, 1);
+                    moveWithCollision(0, 1);
+                    break;
+                case A:
+                    setImg(getNextLeftImage());
+                    align(-1, 0);
+                    moveWithCollision(-1, 0);
+                    break;
+                case D:
+                    setImg(getNextRightImage());
+                    align(1, 0);
+                    moveWithCollision(1, 0);
+                    break;
+                case SPACE:
+                    // sau này đặt bomb
+                    break;
             }
         });
-
-        scene.setOnKeyReleased(event -> pressedKeys.remove(event.getCode()));
     }
 
-    private void handleMovement(KeyCode code) {
-        switch (code) {
-            case W:
-                if (BombermanGame.validate(x, y - speed)) {
-                    y -= speed;
-                    setImg(getNextUpImage());
-                }
-                break;
-            case S:
-                if (BombermanGame.validate(x, y + speed)) {
-                    y += speed;
-                    setImg(getNextDownImage());
-                }
-                break;
-            case A:
-                if (BombermanGame.validate(x - speed, y)) {
-                    x -= speed;
-                    setImg(getNextLeftImage());
-                }
-                break;
-            case D:
-                if (BombermanGame.validate(x + speed, y)) {
-                    x += speed;
-                    setImg(getNextRightImage());
-                }
-                break;
-            case SPACE:
-                // Sau này đặt bomb ở đây
-                break;
-        }
+    public int getBombCount() {
+        return bombCount;
     }
 
-    @Override
-    public char getSymbol() {
-        return 'p';
+    public void setBombCount(int bombCount) {
+        this.bombCount = bombCount;
+    }
+
+    public int getBombRadius() {
+        return bombRadius;
+    }
+
+    public void setBombRadius(int bombRadius) {
+        this.bombRadius = bombRadius;
+    }
+
+    public void increaseBomb() {
+        bombCount++;
+    }
+
+    public void decreaseBomb() {
+        bombCount--;
+    }
+
+    public void increaseFlameLength() {
+        bombRadius++;
+    }
+
+    public void decreaseFlameLength() {
+        bombRadius--;
+    }
+
+    public void increaseSpeed() {
+        speed++;
+    }
+
+    public void decreaseSpeed() {
+        speed--;
+    }
+
+    public void setBombBufftime(int bomb) {
+        this.bombBufftime = bomb;
+    }
+
+    public void setFlameBufftime(int flame) {
+        this.flameBufftime = flame;
+    }
+
+    public void setSpeedBufftime(int speed) {
+        this.speedBufftime = speed;
     }
 }

@@ -71,8 +71,6 @@ public abstract class Entity {
     }
     public abstract void update();
 
-    public abstract char getSymbol();
-
     public int getX() {
         return x;
     }
@@ -92,7 +90,7 @@ public abstract class Entity {
     }
 
     public int getRealX() {
-        return x * Sprite.SCALED_SIZE;
+        return realX;
     }
 
     public void setRealX(int realX) {
@@ -100,7 +98,7 @@ public abstract class Entity {
     }
 
     public int getRealY() {
-        return y * Sprite.SCALED_SIZE;
+        return realY;
     }
 
     public void setRealY(int realY) {
@@ -113,6 +111,14 @@ public abstract class Entity {
 
     public void setImg(Image img) {
         this.img = img;
+    }
+
+    public int getXFromRealX(int RealX) {
+        return RealX / Sprite.SCALED_SIZE;
+    }
+
+    public int getYFromRealY(int RealY) {
+        return RealY / Sprite.SCALED_SIZE;
     }
 
     public Image getNextLeftImage() {
@@ -154,4 +160,43 @@ public abstract class Entity {
         currentDirection = 4;
         return down_images.get(frameIndex);
     }
+
+    protected boolean moveWithCollision(int dx, int dy) {
+        boolean moved = false;
+        for (int i = 0; i < speed; i++) {
+            if (BombermanGame.validatePixelMove(realX + dx, realY + dy)) {
+                realX += dx;
+                realY += dy;
+                moved = true;
+            } else {
+                break;
+            }
+        }
+        return moved;
+    }
+
+    protected void align(int dx, int dy) {
+        if (dx != 0) { // đi ngang → căn trục dọc
+            int remainder = realY % Sprite.SCALED_SIZE;
+            if (remainder != 0) {
+                if (remainder < Sprite.SCALED_SIZE / 2) {
+                    realY -= remainder;
+                } else {
+                    realY += (Sprite.SCALED_SIZE - remainder);
+                }
+            }
+        }
+
+        if (dy != 0) { // đi dọc → căn trục ngang
+            int remainder = realX % Sprite.SCALED_SIZE;
+            if (remainder != 0) {
+                if (remainder < Sprite.SCALED_SIZE / 2) {
+                    realX -= remainder;
+                } else {
+                    realX += (Sprite.SCALED_SIZE - remainder);
+                }
+            }
+        }
+    }
+
 }
