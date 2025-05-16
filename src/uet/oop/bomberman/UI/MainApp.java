@@ -4,8 +4,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import uet.oop.bomberman.BombermanGame;
-import uet.oop.bomberman.UI.GameOverScreen;
-import uet.oop.bomberman.UI.StartMenu;
+import uet.oop.bomberman.UI.GameResult;
+
 
 public class MainApp extends Application {
 
@@ -51,10 +51,17 @@ public class MainApp extends Application {
         primaryStage.setScene(scene);
     }
 
-    // Phương thức hiển thị GameOverScreen
-    public void showGameOver() {
-        GameOverScreen gameOverScreen = new GameOverScreen(this);  // Truyền MainApp vào GameOverScreen
-        Scene scene = new Scene(gameOverScreen);
+//    // Phương thức hiển thị GameOverScreen
+//    public void showGameOver() {
+//        GameResultScreen gameOverScreen = new GameResultScreen(this);  // Truyền MainApp vào GameOverScreen
+//        Scene scene = new Scene(gameOverScreen);
+//        primaryStage.setScene(scene);
+//    }
+
+    public void showGameResult(GameResult result) {
+        GameResultScreen resultScreen = new GameResultScreen(this, result);
+        Scene scene = new Scene(resultScreen);
         primaryStage.setScene(scene);
     }
+
 }

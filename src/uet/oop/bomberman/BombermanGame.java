@@ -7,13 +7,15 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
-import uet.oop.bomberman.UI.GameOverScreen;
+import uet.oop.bomberman.UI.GameResultScreen;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.UI.MainApp;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import uet.oop.bomberman.UI.GameResult;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -134,10 +136,11 @@ public class BombermanGame extends Application {
 
     // Hàm Game Over
     public void gameOver(MainApp mainApp) {
-        GameOverScreen gameOverScreen = new GameOverScreen(mainApp);
+        GameResultScreen gameOverScreen = new GameResultScreen(mainApp, GameResult.LOSE);
         Scene gameOverScene = new Scene(gameOverScreen);
         stage.setScene(gameOverScene);
     }
+
 
     public void continueGame() {
         System.out.println("Continuing game...");
@@ -224,8 +227,8 @@ public class BombermanGame extends Application {
         writer.close();
     }
 
-    // Hàm Game Over đã đổi tên
-    public void endGame(MainApp mainApp) {
+    // Hàm kết thúc game (khi thắng hoặc thua)
+    public void endGame(MainApp mainApp, GameResult result) {
         // Lưu game trước khi kết thúc
         try {
             saveGame("res/savegame.txt"); // Lưu game vào file savegame.txt
@@ -234,10 +237,15 @@ public class BombermanGame extends Application {
             System.out.println("Error saving game.");
         }
 
-        // Hiển thị màn hình GameOver
-        GameOverScreen gameOverScreen = new GameOverScreen(mainApp);
-        Scene gameOverScene = new Scene(gameOverScreen);
-        stage.setScene(gameOverScene);
+        // Hiển thị màn hình kết quả
+        showGameResult(mainApp, result);
+    }
+
+    // Hàm hiển thị màn hình kết quả
+    public void showGameResult(MainApp mainApp, GameResult result) {
+        GameResultScreen resultScreen = new GameResultScreen(mainApp, result);
+        Scene resultScene = new Scene(resultScreen);
+        stage.setScene(resultScene);
     }
 
 
