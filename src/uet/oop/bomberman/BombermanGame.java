@@ -30,6 +30,10 @@ public class BombermanGame extends Application {
     private Canvas canvas;
     private Stage stage;
 
+    private int fps = 0;
+    private int frames = 0;
+    private long lastTimer;
+
     // List động và tĩnh tách riêng
     public static List<Entity> entities = new ArrayList<>();
     public static List<Entity> stillObjects = new ArrayList<>();
@@ -52,7 +56,6 @@ public class BombermanGame extends Application {
         this.stage = stage;  // Cập nhật stage khi khởi tạo
 
         // Canvas setup
-        stage.setTitle("Bomberman");
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
@@ -73,12 +76,24 @@ public class BombermanGame extends Application {
         }
         bomberman.handleKeyEvent(scene);
 
+        lastTimer = (int)System.currentTimeMillis();
         // Game loop
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 update();
                 render();
+
+                frames++;
+
+                // Cứ mỗi giây tính lại fps
+                if (now - lastTimer >= 1000000000) {
+                    fps = frames;
+                    System.out.println("FPS: " + fps);
+                    frames = 0;
+                    lastTimer = now;
+                    stage.setTitle("Bomberman FPS: " + fps);
+                }
             }
         };
         timer.start();
