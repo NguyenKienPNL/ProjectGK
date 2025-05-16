@@ -35,12 +35,14 @@ public class BombermanGame extends Application {
     // Bomber tham chiếu riêng nếu cần dùng trực tiếp
     private static Bomber bomberman;
 
-    public static Bomber getBomberman() {
-        return bomberman;
-    }
-
+    
+    public BombermanGame() {}
     public BombermanGame(Stage stage) {
         this.stage = stage;
+    }
+
+    public static Bomber getBomberman() {
+        return bomberman;
     }
 
     @Override

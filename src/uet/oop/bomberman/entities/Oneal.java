@@ -37,11 +37,11 @@ public class Oneal extends Enemy {
 
     public void move() {
 
-        boolean found = false;
-        if (distance() <= radius) {
-            speed *= 2;
-            found = true;
-        }
+//        boolean found = false;
+//        if (distance() <= radius) {
+//            speed *= 2;
+//            found = true;
+//        }
 
         // Nếu đang ở giữa ô (center pixel)
         if (realX % Sprite.SCALED_SIZE == 0 && realY % Sprite.SCALED_SIZE == 0) {
@@ -79,9 +79,9 @@ public class Oneal extends Enemy {
                 break;
         }
 
-        if (found) {
-            speed /= 2;
-        }
+//        if (found) {
+//            speed /= 2;
+//        }
     }
 
     private boolean canMove(int dx, int dy) {
