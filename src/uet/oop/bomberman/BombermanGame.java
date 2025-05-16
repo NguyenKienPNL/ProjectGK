@@ -30,8 +30,8 @@ public class BombermanGame extends Application {
     private Canvas canvas;
     private Stage stage;
 
-    private int fps = 0;
-    private int frames = 0;
+    public int fps = 0;
+    public int frames = 0;
     private long lastTimer;
 
     // List động và tĩnh tách riêng

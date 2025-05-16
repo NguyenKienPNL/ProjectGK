@@ -28,7 +28,7 @@ public class Oneal extends Enemy {
         this.right_images.add(Sprite.oneal_right3.getFxImage());
 
         this.speed = 2;
-        this.radius = 10;
+        this.radius = 10 * Sprite.SCALED_SIZE;
         this.direction = rand.nextInt(4);
         this.sprinted = false;
 
@@ -95,11 +95,6 @@ public class Oneal extends Enemy {
         return distance() <= radius * radius;
     }
 
-    private boolean canMove(int dx, int dy) {
-        int newX = getXFromRealX(realX + dx);
-        int newY = getYFromRealY(realY + dy);
-        return BombermanGame.validate(newX, newY);
-    }
 
     public boolean isCentered() {
         int epsilon = 2;
@@ -121,8 +116,9 @@ public class Oneal extends Enemy {
 
         direction = possibleDirections.get(rand.nextInt(possibleDirections.size()));
     }
+
     int distance() {
-        return (int) (Math.pow(BombermanGame.getBomberman().getX() - x, 2)
-                 + Math.pow(BombermanGame.getBomberman().getY() - y, 2));
+        return (int) (Math.pow(BombermanGame.getBomberman().getRealX() - realX, 2)
+                 + Math.pow(BombermanGame.getBomberman().getRealY() - realY, 2));
     }
 }
