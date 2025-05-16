@@ -12,6 +12,8 @@ public class Oneal extends Enemy {
 
     private int radius;
     private int direction; // 0: left, 1: right, 2: up, 3: down
+    private boolean sprinted;
+
     private Random rand = new Random();
 
     public Oneal(int x, int y, Image img) {
@@ -28,6 +30,8 @@ public class Oneal extends Enemy {
         this.speed = 2;
         this.radius = 10;
         this.direction = rand.nextInt(4);
+        this.sprinted = false;
+
     }
 
     @Override
@@ -35,53 +39,60 @@ public class Oneal extends Enemy {
         move();
     }
 
+
     public void move() {
 
-//        boolean found = false;
-//        if (distance() <= radius) {
-//            speed *= 2;
-//            found = true;
-//        }
-
-        // Nếu đang ở giữa ô (center pixel)
-        if (realX % Sprite.SCALED_SIZE == 0 && realY % Sprite.SCALED_SIZE == 0) {
-            int tileX = getXFromRealX(realX);
-            int tileY = getYFromRealY(realY);
-
-            // Tìm hướng đi hợp lệ
-            List<Integer> possibleDirections = new ArrayList<>();
-            if (BombermanGame.validate(tileX - 1, tileY)) possibleDirections.add(0); // left
-            if (BombermanGame.validate(tileX + 1, tileY)) possibleDirections.add(1); // right
-            if (BombermanGame.validate(tileX, tileY - 1)) possibleDirections.add(2); // up
-            if (BombermanGame.validate(tileX, tileY + 1)) possibleDirections.add(3); // down
-
-            // Nếu hướng hiện tại không hợp lệ, hoặc có nhiều đường thì chọn lại
-            if (!possibleDirections.contains(direction) || possibleDirections.size() > 2) {
-                direction = possibleDirections.get(rand.nextInt(possibleDirections.size()));
-            }
+        //cap nhat toc do
+        if (!sprinted && nearToBomberman()) {
+            sprinted = true;
+            speed *= 2;
         }
 
-        // Di chuyển theo hướng
+        if (sprinted && !nearToBomberman()) {
+            sprinted = false;
+            speed /= 2;
+        }
+
+        // cac huong kha di
+        if (isCentered()) {
+            chooseARandomDirection();
+        }
+
         switch (direction) {
-            case 0: // left
+            case 0:
                 setImg(getNextLeftImage());
-                if (canMove(-speed, 0)) realX -= speed;
+                moveWithCollision(-1, 0);
+//                moveToCell(-1, 0);
                 break;
-            case 1: // right
+            case 1:
                 setImg(getNextRightImage());
-                if (canMove(speed, 0)) realX += speed;
+                moveWithCollision(1, 0);
+//                moveToCell(1, 0);
                 break;
-            case 2: // up
-                if (canMove(0, -speed)) realY -= speed;
+            case 2:
+                setImg(getNextLeftImage());
+                moveWithCollision(0, -1);
+//                moveToCell(0, -1);
                 break;
-            case 3: // down
-                if (canMove(0, speed)) realY += speed;
+            case 3:
+                setImg(getNextRightImage());
+                moveWithCollision(0, 1);
+//                moveToCell(0, 1);
                 break;
         }
+    }
 
-//        if (found) {
-//            speed /= 2;
-//        }
+    public void moveToCell(int dx, int dy) {
+        int prevX = getXFromRealX(realX);
+        int prevY = getYFromRealY(realY);
+
+        while (getXFromRealX(realX) == prevX && getYFromRealY(realY) == prevY) {
+            moveWithCollision(dx, dy);
+        }
+    }
+
+    public boolean nearToBomberman() {
+        return distance() <= radius * radius;
     }
 
     private boolean canMove(int dx, int dy) {
@@ -90,8 +101,28 @@ public class Oneal extends Enemy {
         return BombermanGame.validate(newX, newY);
     }
 
+    public boolean isCentered() {
+        int epsilon = 2;
+        int cellCenterX = getXFromRealX(realX) * Sprite.SCALED_SIZE + Sprite.SCALED_SIZE / 2;
+        int cellCenterY = getYFromRealY(realY) * Sprite.SCALED_SIZE + Sprite.SCALED_SIZE / 2;
+
+        return Math.abs(realX + Sprite.SCALED_SIZE / 2 - cellCenterX) < epsilon
+                && Math.abs(realY + Sprite.SCALED_SIZE / 2 - cellCenterY) < epsilon;
+    }
+
+    public void chooseARandomDirection() {
+        int tileX = getXFromRealX(realX);
+        int tileY = getYFromRealY(realY);
+        List<Integer> possibleDirections = new ArrayList<>();
+        if (BombermanGame.validate(tileX - 1, tileY)) possibleDirections.add(0);
+        if (BombermanGame.validate(tileX + 1, tileY)) possibleDirections.add(1);
+        if (BombermanGame.validate(tileX, tileY - 1)) possibleDirections.add(2);
+        if (BombermanGame.validate(tileX, tileY + 1)) possibleDirections.add(3);
+
+        direction = possibleDirections.get(rand.nextInt(possibleDirections.size()));
+    }
     int distance() {
-        return (int)Math.sqrt(Math.pow(BombermanGame.getBomberman().getX() - x, 2)
-         + Math.pow(BombermanGame.getBomberman().getY() - y, 2));
+        return (int) (Math.pow(BombermanGame.getBomberman().getX() - x, 2)
+                 + Math.pow(BombermanGame.getBomberman().getY() - y, 2));
     }
 }
