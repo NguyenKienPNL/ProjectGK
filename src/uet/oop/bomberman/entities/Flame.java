@@ -11,11 +11,12 @@ public class Flame extends Entity {
     private List<Image> explodeDown = new ArrayList<>();
     private List<Image> explodeLeft = new ArrayList<>();
     private List<Image> explodeRight = new ArrayList<>();
+    private List<Image> explodeCenter = new ArrayList<>();
 
     private int frameSpeed = 5;
     private int frameCount = 0;
     private boolean isLast;
-    private int direction; // 0: left, 1: right, 2: up, 3: down
+    private int direction; // 0: left, 1: right, 2: up, 3: down, -1: center
     private int frameIndex;
     private int frameShowed;
 
@@ -62,6 +63,10 @@ public class Flame extends Entity {
         explodeRight.add(Sprite.explosion_horizontal_right_last.getFxImage());
         explodeRight.add(Sprite.explosion_horizontal_right_last1.getFxImage());
         explodeRight.add(Sprite.explosion_horizontal_right_last2.getFxImage());
+
+        explodeCenter.add(Sprite.bomb_exploded.getFxImage());
+        explodeCenter.add(Sprite.bomb_exploded1.getFxImage());
+        explodeCenter.add(Sprite.bomb_exploded2.getFxImage());
     }
 
     public void update() {
@@ -71,6 +76,9 @@ public class Flame extends Entity {
             frameShowed++;
 
             switch (direction) {
+                case -1:
+                    img = explodeLeft.get(frameIndex);
+                    break;
                 case 0:
                     if (isLast) {
                         img = explodeLeft.get(frameIndex);

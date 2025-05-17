@@ -26,6 +26,8 @@ public class BombermanGame extends Application {
     public static final int WIDTH = 30;
     public static final int HEIGHT = 15;
 
+    public char[][] map;
+
     private GraphicsContext gc;
     private Canvas canvas;
     private Stage stage;
@@ -103,6 +105,9 @@ public class BombermanGame extends Application {
         LevelLoader levelLoader = new LevelLoader();
         LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level2.txt");
 
+        // Lấy map
+        map = levelInfo.map;
+
         // Load object tĩnh
         stillObjects = levelLoader.loadStillObjects(levelInfo);
 
@@ -116,6 +121,10 @@ public class BombermanGame extends Application {
         for (Entity entity : entities) {
             entity.update();
         }
+    }
+
+    public static void addEntity(Entity e) {
+        entities.add(e);
     }
 
     public void render() {
@@ -133,10 +142,20 @@ public class BombermanGame extends Application {
         }
     }
 
-    // Hàm kiểm tra vật cản (Wall, Brick)
+    // Hàm kiểm tra vật cản không phá được (Wall)
     public static boolean hasObstacleAt(int x, int y) {
         for (Entity e : stillObjects) {
-            if ((e instanceof Wall || e instanceof Brick) && x == e.getX() && y == e.getY()) {
+            if (e instanceof Wall && x == e.getX() && y == e.getY()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Hàm kiểm tra vật cản phá được (Brick)
+    public static boolean hasDestructibleAt(int x, int y) {
+        for (Entity e : stillObjects) {
+            if (e instanceof Brick && x == e.getX() && y == e.getY()) {
                 return true;
             }
         }
@@ -145,9 +164,37 @@ public class BombermanGame extends Application {
 
     // Kiểm tra hợp lệ khi di chuyển (tile-based)
     public static boolean validate(int x, int y) {
-        return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 && !hasObstacleAt(x, y));
+        return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 &&
+                !hasObstacleAt(x, y) && !hasDestructibleAt(x, y));
     }
 
+    public static boolean hasPlayerOrEnemyAt(int x, int y) {
+        for(Entity e : entities) {
+            if ((e instanceof Bomber || e instanceof Enemy) && x == e.getX() && y == e.getY()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Entity getStillObjectAt(int x, int y) {
+        for (Entity e : stillObjects) {
+            if (e.getX() == x && e.getY() == y) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    public static List<Entity> getEntitiesAt(int x, int y) {
+        List<Entity> result = new ArrayList<>();
+        for (Entity e: entities) {
+            if (e.getX() == x && e.getY() == y) {
+                result.add(e);
+            }
+        }
+        return result;
+    }
 
     // Hàm Game Over
     public void gameOver(MainApp mainApp) {
@@ -262,9 +309,6 @@ public class BombermanGame extends Application {
         Scene resultScene = new Scene(resultScreen);
         stage.setScene(resultScene);
     }
-
-
-
 
     public static boolean validatePixelMove(int realX, int realY) {
         int tileLeft = realX / Sprite.SCALED_SIZE;

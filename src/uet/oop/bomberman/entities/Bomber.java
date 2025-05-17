@@ -112,6 +112,7 @@ public class Bomber extends Entity {
                     break;
                 case SPACE:
                     // sau này đặt bomb
+//                    BombermanGame.addEntity(new Flame(x, y, null, false, 0));
                     break;
             }
         });
