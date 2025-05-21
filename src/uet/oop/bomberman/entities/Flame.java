@@ -13,12 +13,13 @@ public class Flame extends Entity {
     private List<Image> explodeRight = new ArrayList<>();
     private List<Image> explodeCenter = new ArrayList<>();
 
-    private int frameSpeed = 5;
+    private int frameSpeed = 20;
     private int frameCount = 0;
     private boolean isLast;
     private int direction; // 0: left, 1: right, 2: up, 3: down, -1: center
     private int frameIndex;
     private int frameShowed;
+    private int maxFrames;
 
     public Flame(int x, int y, Image img) {
         super(x, y, img);
@@ -31,6 +32,7 @@ public class Flame extends Entity {
         this.direction = direction;
         this.frameIndex = 0;
         this.frameShowed = 0;
+        this.maxFrames = 3;
 
         up_images.add(Sprite.explosion_vertical.getFxImage());
         up_images.add(Sprite.explosion_vertical1.getFxImage());
@@ -77,7 +79,7 @@ public class Flame extends Entity {
 
             switch (direction) {
                 case -1:
-                    img = explodeLeft.get(frameIndex);
+                    img = explodeCenter.get(frameIndex);
                     break;
                 case 0:
                     if (isLast) {
@@ -111,5 +113,9 @@ public class Flame extends Entity {
 
             frameIndex++;
         }
+    }
+
+    public boolean isFinished() {
+        return frameShowed >= maxFrames;
     }
 }

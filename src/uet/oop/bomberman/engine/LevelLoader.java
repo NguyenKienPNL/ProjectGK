@@ -63,6 +63,8 @@ public class LevelLoader {
                     entities.add(new Balloom(j, i, Sprite.balloom_right1.getFxImage()));
                 } else if (levelInfo.map[i][j] == '2') {
                     entities.add(new Oneal(j, i, Sprite.oneal_right1.getFxImage()));
+                } else if (levelInfo.map[i][j] == '*') {
+                    entities.add(new Brick(j, i, Sprite.brick.getFxImage()));
                 }
             }
         }
@@ -75,8 +77,6 @@ public class LevelLoader {
             for (int j = 0; j < levelInfo.cols; j++) {
                 if (levelInfo.map[i][j] == '#') {
                     StillObjects.add(new Wall(j, i, Sprite.wall.getFxImage()));
-                } else if (levelInfo.map[i][j] == '*') {
-                    StillObjects.add(new Brick(j, i, Sprite.brick.getFxImage()));
                 } else {
                     StillObjects.add(new Grass(j, i, Sprite.grass.getFxImage()));
                 }
