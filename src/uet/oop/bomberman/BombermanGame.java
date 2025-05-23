@@ -15,6 +15,12 @@ import uet.oop.bomberman.UI.MainApp;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import uet.oop.bomberman.UI.GameResult;
+import uet.oop.bomberman.UI.InfoBar;
+import javafx.scene.layout.VBox;
+import javafx.animation.Timeline;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+
 
 
 import java.io.IOException;
@@ -43,7 +49,19 @@ public class BombermanGame extends Application {
     // Bomber tham chiếu riêng nếu cần dùng trực tiếp
     private static Bomber bomberman;
 
-    
+    //Biến hiển thị thời gian, điểm số, màn chơi
+    private InfoBar infoBar;
+    private Timeline timer;
+    private int timeLeft = 15;
+    private MainApp mainApp;  // truyền từ MainApp
+    private AnimationTimer animationTimer;
+    private int score = 0;
+    private int currentLevel = 1;
+    private int timeRemaining = 200; // hoặc thời gian khởi tạo ban đầu tùy game của bạn
+    private int currentScore = 0;    // điểm hiện tại
+
+
+
     public BombermanGame() {}
     public BombermanGame(Stage stage) {
         this.stage = stage;
@@ -55,14 +73,21 @@ public class BombermanGame extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        this.stage = stage;  // Cập nhật stage khi khởi tạo
+        this.stage = stage;
+        this.infoBar = new InfoBar();
 
-        // Canvas setup
+
+        // Canvas game
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
-        Group root = new Group();
-        root.getChildren().add(canvas);
+        // ✅ Tạo InfoBar
+        this.infoBar = new InfoBar();
+
+        // ✅ Layout tổng: VBox gồm InfoBar (trên) và Canvas (dưới)
+        VBox root = new VBox();
+        root.getChildren().addAll(infoBar, canvas);
+
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
@@ -70,7 +95,7 @@ public class BombermanGame extends Application {
         // Load map và entity
         createMap();
 
-        // Thêm Bomber vào entities
+        // Tìm Bomber
         for (Entity e : entities) {
             if (e instanceof Bomber) {
                 bomberman = (Bomber) e;
@@ -78,32 +103,47 @@ public class BombermanGame extends Application {
         }
         bomberman.handleKeyEvent(scene);
 
-        lastTimer = (int)System.currentTimeMillis();
-        // Game loop
-        AnimationTimer timer = new AnimationTimer() {
+        lastTimer = (int) System.currentTimeMillis();
+
+        gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 update();
                 render();
 
                 frames++;
-
-                // Cứ mỗi giây tính lại fps
-                if (now - lastTimer >= 1000000000) {
+                if (now - lastTimer >= 1_000_000_000) {
                     fps = frames;
 //                    System.out.println("FPS: " + fps);
                     frames = 0;
                     lastTimer = now;
                     stage.setTitle("Bomberman FPS: " + fps);
+
+                    //  Trừ thời gian mỗi giây
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        // ❌ Hết giờ => Thua
+                        endGame(mainApp, GameResult.LOSE);
+                        stop(); // Dừng AnimationTimer
+                        return;
+                    }
+
+                    //  Cập nhật InfoBar (ví dụ: giả lập dữ liệu)
+                    infoBar.setTime(timeLeft);
+                    infoBar.setScore(score);  // Bạn phải có biến score
+                    infoBar.setLevel(currentLevel);  // Bạn cần biến currentLevel
+                    infoBar.getPauseButton().setOnAction(e -> pauseGame());
+
                 }
             }
         };
-        timer.start();
+        gameLoop.start();
     }
+
 
     public void createMap() throws IOException {
         LevelLoader levelLoader = new LevelLoader();
-        LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level2.txt");
+        LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level1.txt");
 
         // Lấy map
         map = levelInfo.map;
@@ -253,50 +293,77 @@ public class BombermanGame extends Application {
                 }
             };
             timer.start(); // Bắt đầu vòng lặp game
+            this.timeLeft = levelInfo.timeLeft;
+            this.score = levelInfo.score;
+            this.currentLevel = levelInfo.level;
 
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error loading saved game.");
         }
+
+
     }
 
     public void saveGame(String filePath) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-
-        // Lưu thông tin cấp độ, hàng và cột
-        writer.write(bomberman.getCurrentLevel() + " " + HEIGHT + " " + WIDTH); // Ví dụ lưu cấp độ hiện tại và kích thước map
-        writer.newLine();
-
-        // Lưu bản đồ (map) từ trạng thái của các đối tượng trong stillObjects và entities
-        for (int i = 0; i < HEIGHT; i++) {
-            StringBuilder line = new StringBuilder();
-            for (int j = 0; j < WIDTH; j++) {
-                char mapChar = ' '; // Mặc định là Grass
-                // Kiểm tra các đối tượng tĩnh
-                for (Entity entity : stillObjects) {
-                    if (entity.getX() == j && entity.getY() == i) {
-                        if (entity instanceof Wall) mapChar = '#';
-                        if (entity instanceof Brick) mapChar = '*';
-                        break;
-                    }
-                }
-                // Kiểm tra các đối tượng động
-                for (Entity entity : entities) {
-                    if (entity.getX() == j && entity.getY() == i) {
-                        if (entity instanceof Bomber) mapChar = 'p'; // 'p' cho Bomber
-                        if (entity instanceof Balloom) mapChar = '1'; // '1' cho Balloom
-                        if (entity instanceof Oneal) mapChar = '2'; // '2' cho Oneal
-                        break;
-                    }
-                }
-                line.append(mapChar);
-            }
-            writer.write(line.toString());
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // 1. Lưu Level, Width, Height
+            writer.write(bomberman.getCurrentLevel() + " " + WIDTH + " " + HEIGHT);
             writer.newLine();
-        }
 
-        writer.close();
+            // 2. Lưu thời gian và điểm
+            writer.write(timeRemaining + " " + score);
+            writer.newLine();
+
+            // 3. Lưu trạng thái buff (nếu cần)
+            writer.write(bomberman.getBombCount() + " " + bomberman.getBombRadius() + " " + bomberman.getSpeed());
+            writer.newLine();
+
+            // 4. Lưu thông tin bản đồ theo từng dòng
+            for (int i = 0; i < HEIGHT; i++) {
+                StringBuilder line = new StringBuilder();
+                for (int j = 0; j < WIDTH; j++) {
+                    char mapChar = ' '; // Grass mặc định
+
+                    // Ưu tiên Bomber và Enemy
+                    for (Entity e : entities) {
+                        if (e.getX() == j && e.getY() == i) {
+                            if (e instanceof Bomber) {
+                                mapChar = 'p';
+                                break;
+                            } else if (e instanceof Balloom) {
+                                mapChar = '1';
+                                break;
+                            } else if (e instanceof Oneal) {
+                                mapChar = '2';
+                                break;
+                            }
+                        }
+                    }
+
+                    // Nếu không có enemy hay bomber, kiểm tra stillObjects
+                    if (mapChar == ' ') {
+                        for (Entity e : stillObjects) {
+                            if (e.getX() == j && e.getY() == i) {
+                                if (e instanceof Wall) mapChar = '#';
+                                else if (e instanceof Brick) mapChar = '*';
+                                break;
+                            }
+                        }
+                    }
+
+                    line.append(mapChar);
+                }
+                writer.write(line.toString());
+                writer.newLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+
 
     // Hàm kết thúc game (khi thắng hoặc thua)
     public void endGame(MainApp mainApp, GameResult result) {
@@ -330,5 +397,62 @@ public class BombermanGame extends Application {
                 && validate(tileLeft, tileBottom)
                 && validate(tileRight, tileBottom);
     }
+
+    public BombermanGame(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
+
+    private AnimationTimer gameLoop;
+    private void pauseGame() {
+        if (gameLoop != null) {
+            gameLoop.stop(); // Dừng game
+        }
+
+        VBox pauseMenu = new VBox(20);
+        pauseMenu.setAlignment(Pos.CENTER);
+        // Tạo nền mờ đen để làm nổi bật menu pause
+        pauseMenu.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
+        // Đặt pauseMenu phủ toàn bộ canvas
+        pauseMenu.setPrefSize(canvas.getWidth(), canvas.getHeight());
+
+        Button continueBtn = new Button("Continue");
+        Button saveExitBtn = new Button("Save & Exit");
+
+        pauseMenu.getChildren().addAll(continueBtn, saveExitBtn);
+
+        // Lấy VBox cha (chứa InfoBar + Canvas)
+        VBox root = (VBox) canvas.getParent();
+
+        // Thêm pauseMenu vào cuối cùng để nó hiển thị trên cùng
+        root.getChildren().add(pauseMenu);
+
+        continueBtn.setOnAction(e -> {
+            // Xóa pauseMenu khi tiếp tục
+            root.getChildren().remove(pauseMenu);
+
+            // Gọi hàm tiếp tục game, nếu bạn có thêm logic tải game thì gọi continueGame()
+            // Hoặc nếu chỉ dừng tạm thì chỉ cần start lại AnimationTimer
+            if (gameLoop != null) {
+                gameLoop.start();
+            }
+        });
+
+        saveExitBtn.setOnAction(e -> {
+            try {
+                saveGame("res/savegame.txt");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            // Quay về màn hình Start Menu
+            mainApp.showStartMenu();
+
+            // Đồng thời xóa menu pause để tránh lỗi khi quay lại
+            root.getChildren().remove(pauseMenu);
+        });
+    }
+
+
+
 
 }

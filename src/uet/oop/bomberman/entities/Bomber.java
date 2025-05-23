@@ -173,4 +173,11 @@ public class Bomber extends Entity {
     public void setSpeedBufftime(int speed) {
         this.speedBufftime = speed;
     }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+
+
 }
