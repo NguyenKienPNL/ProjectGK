@@ -5,6 +5,7 @@ import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class FlameSegments extends Entity {
@@ -17,18 +18,31 @@ public class FlameSegments extends Entity {
         this.bomber = bomber;
 
         // Flame ở vị trí bomb
-        flames.add(new Flame(x, y, Sprite.bomb_exploded.getFxImage()));
+        flames.add(new Flame(x, y, Sprite.bomb_exploded.getFxImage(), false, -1));
 
         // 4 hướng
         addDirection(-1, 0, 0); // left
         addDirection(1, 0, 1);  // right
         addDirection(0, -1, 2); // up
         addDirection(0, 1, 3);  // down
+
+        System.out.println(destroyEntities.size());
+        destroy();
     }
 
     public void update() {
-        for (Flame flame : flames) {
-            flame.update();
+        Iterator<Flame> iter = flames.iterator();
+        while (iter.hasNext()) {
+            Flame fSeg = iter.next();
+            fSeg.update();
+            if (fSeg.isFinished()) {
+                iter.remove(); // Xoá khỏi list
+            }
+        }
+
+        if (isFinished()) {
+//            BombermanGame.removeFlame(this);
+            destroy();
         }
     }
 
@@ -54,20 +68,16 @@ public class FlameSegments extends Entity {
             // Nếu gặp Brick, thêm vào danh sách phá và ngừng luôn
             if (BombermanGame.hasDestructibleAt(curX, curY)) {
                 destroyEntities.add(BombermanGame.getStillObjectAt(curX, curY));
-                isLast = true;
+                break;
             }
 
             // Thêm Flame vào list
             flames.add(new Flame(curX, curY, Sprite.explosion_horizontal.getFxImage(), isLast, direction));
 
+
             // Nếu gặp player/enemy
             if (BombermanGame.hasPlayerOrEnemyAt(curX, curY)) {
                 destroyEntities.addAll(BombermanGame.getEntitiesAt(curX, curY));
-            }
-
-            // Nếu gặp Brick thì ngừng luôn
-            if (BombermanGame.hasObstacleAt(curX, curY)) {
-                break;
             }
         }
     }
@@ -75,6 +85,20 @@ public class FlameSegments extends Entity {
     public void destroy() {
         for (Entity entity : destroyEntities) {
 //            entity.loadDead(); // hàm này bạn tự xử lý animation chết
+            if (entity instanceof Brick) {
+                ((Brick) entity).destroy();
+            }
         }
     }
+
+    public boolean isFinished() {
+        for (Flame flame : flames) {
+            if (!flame.isFinished()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }

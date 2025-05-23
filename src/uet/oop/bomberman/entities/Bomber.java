@@ -30,6 +30,9 @@ public class Bomber extends Entity {
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
         this.speed = 8;
+        this.bombRadius = 4;
+        this.currentLevel = 1;
+        this.bombCount = 1;
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());
@@ -113,6 +116,7 @@ public class Bomber extends Entity {
                 case SPACE:
                     // sau này đặt bomb
 //                    BombermanGame.addEntity(new Flame(x, y, null, false, 0));
+                    BombermanGame.addEntity(new FlameSegments(x, y, this));
                     break;
             }
         });

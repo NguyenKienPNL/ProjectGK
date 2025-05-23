@@ -36,6 +36,9 @@ public class Brick extends Entity {
     }
 
 
+    public boolean isDestroyed() {
+        return destroyed;
+    }
 
 //    khi bom no thi .ham nay
     public void destroy() {

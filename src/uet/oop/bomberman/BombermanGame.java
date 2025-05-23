@@ -114,7 +114,7 @@ public class BombermanGame extends Application {
                 frames++;
                 if (now - lastTimer >= 1_000_000_000) {
                     fps = frames;
-                    System.out.println("FPS: " + fps);
+//                    System.out.println("FPS: " + fps);
                     frames = 0;
                     lastTimer = now;
                     stage.setTitle("Bomberman FPS: " + fps);
@@ -167,6 +167,15 @@ public class BombermanGame extends Application {
         entities.add(e);
     }
 
+    public static void removeFlame(Entity e) {
+        for (int i = 0; i < entities.size(); i++) {
+            if (entities.get(i) instanceof FlameSegments && entities.get(i).equals(e)) {
+                entities.remove(i);
+                break;
+            }
+        }
+    }
+
     public void render() {
         // Clear canvas
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -194,8 +203,8 @@ public class BombermanGame extends Application {
 
     // Hàm kiểm tra vật cản phá được (Brick)
     public static boolean hasDestructibleAt(int x, int y) {
-        for (Entity e : stillObjects) {
-            if (e instanceof Brick && x == e.getX() && y == e.getY()) {
+        for (Entity e : entities) {
+            if (e instanceof Brick && x == e.getX() && y == e.getY() && !((Brick) e).isDestroyed()) {
                 return true;
             }
         }
