@@ -32,7 +32,7 @@ public class Oneal extends Enemy {
         this.radius = 10 * Sprite.SCALED_SIZE;
         this.direction = rand.nextInt(4);
         this.sprinted = false;
-        map = BombermanGame.map;
+//        map = BombermanGame.map;
     }
 
     @Override

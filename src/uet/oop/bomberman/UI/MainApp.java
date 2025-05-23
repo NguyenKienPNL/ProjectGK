@@ -28,7 +28,7 @@ public class MainApp extends Application {
 
     // Phương thức khởi động game
     public void startGame() {
-        BombermanGame game = new BombermanGame(this);  // ✅ Truyền this
+        BombermanGame game = new BombermanGame();  // ✅ Truyền this
         try {
             game.start(primaryStage); // Khởi chạy với stage đã có
         } catch (IOException e) {

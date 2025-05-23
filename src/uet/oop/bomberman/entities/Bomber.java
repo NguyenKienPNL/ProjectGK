@@ -116,7 +116,7 @@ public class Bomber extends Entity {
                 case SPACE:
                     // sau này đặt bomb
 //                    BombermanGame.addEntity(new Flame(x, y, null, false, 0));
-                    BombermanGame.addEntity(new FlameSegments(x, y, this));
+                    placeBomb();
                     break;
             }
         });
@@ -172,5 +172,13 @@ public class Bomber extends Entity {
 
     public void setSpeedBufftime(int speed) {
         this.speedBufftime = speed;
+    }
+    // Trong lớp Bomber
+    public void placeBomb() {
+        if (bombCount > 0) {
+            Bomb bomb = new Bomb(x, y, this);
+            BombermanGame.addEntity(bomb);
+            bombCount--;
+        }
     }
 }
