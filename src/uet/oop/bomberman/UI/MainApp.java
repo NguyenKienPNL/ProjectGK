@@ -6,6 +6,8 @@ import javafx.stage.Stage;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.UI.GameResult;
 
+import java.io.IOException;
+
 
 public class MainApp extends Application {
 
@@ -26,13 +28,14 @@ public class MainApp extends Application {
 
     // Phương thức khởi động game
     public void startGame() {
-        BombermanGame bombermanGame = new BombermanGame(primaryStage);
+        BombermanGame game = new BombermanGame(this);  // ✅ Truyền this
         try {
-            bombermanGame.start(primaryStage);  // Bắt đầu game
-        } catch (Exception e) {
-            e.printStackTrace();  // Hiển thị lỗi nếu có
+            game.start(primaryStage); // Khởi chạy với stage đã có
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
 
     // Phương thức tiếp tục game (mới)
     public void continueGame() {
