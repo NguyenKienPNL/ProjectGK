@@ -6,6 +6,8 @@ import javafx.geometry.Pos;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import uet.oop.bomberman.UI.MainApp;
+import java.io.File;
+
 
 public class StartMenu extends VBox {
 
@@ -67,5 +69,13 @@ public class StartMenu extends VBox {
         exitBtn.setOnAction(e -> System.exit(0));
 
         getChildren().addAll(title, startBtn, continueBtn, exitBtn);
+
+        File saveFile = new File("res/savegame.txt");
+        if (saveFile.exists()) {
+            saveFile.delete();
+        }
+
     }
+
+
 }

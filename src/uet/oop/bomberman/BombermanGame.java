@@ -43,9 +43,7 @@ public class BombermanGame extends Application {
     // Bomber tham chiếu riêng nếu cần dùng trực tiếp
     private static Bomber bomberman;
 
-//    lop bom
-    private static  List<Bomb> bombs = new ArrayList<>();
-
+    
     public BombermanGame() {}
     public BombermanGame(Stage stage) {
         this.stage = stage;

@@ -32,7 +32,7 @@ public class Bomber extends Entity {
         this.speed = 8;
         this.bombRadius = 4;
         this.currentLevel = 1;
-        this.bombCount = 10;
+        this.bombCount = 1;
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());
@@ -116,7 +116,7 @@ public class Bomber extends Entity {
                 case SPACE:
                     // sau này đặt bomb
 //                    BombermanGame.addEntity(new Flame(x, y, null, false, 0));
-                    placeBomb();
+                    BombermanGame.addEntity(new FlameSegments(x, y, this));
                     break;
             }
         });
@@ -172,13 +172,5 @@ public class Bomber extends Entity {
 
     public void setSpeedBufftime(int speed) {
         this.speedBufftime = speed;
-    }
-
-    public void placeBomb() {
-        if(bombCount > 0) {
-            Bomb bomb = new Bomb(x, y, this);
-            BombermanGame.addEntity(bomb);
-            bombCount--;
-        }
     }
 }

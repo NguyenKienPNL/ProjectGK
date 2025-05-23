@@ -15,6 +15,7 @@ public class Oneal extends Enemy {
     private boolean sprinted;
 
     private Random rand = new Random();
+    private char[][] map;
 
     public Oneal(int x, int y, Image img) {
         super(x, y, img);
@@ -31,7 +32,7 @@ public class Oneal extends Enemy {
         this.radius = 10 * Sprite.SCALED_SIZE;
         this.direction = rand.nextInt(4);
         this.sprinted = false;
-
+        map = BombermanGame.map;
     }
 
     @Override
@@ -82,15 +83,6 @@ public class Oneal extends Enemy {
         }
     }
 
-    public void moveToCell(int dx, int dy) {
-        int prevX = getXFromRealX(realX);
-        int prevY = getYFromRealY(realY);
-
-        while (getXFromRealX(realX) == prevX && getYFromRealY(realY) == prevY) {
-            moveWithCollision(dx, dy);
-        }
-    }
-
     public boolean nearToBomberman() {
         return distance() <= radius * radius;
     }
@@ -117,6 +109,14 @@ public class Oneal extends Enemy {
         direction = possibleDirections.get(rand.nextInt(possibleDirections.size()));
     }
 
+    public void chooseDirection() {
+        int tileX = getXFromRealX(realX);
+        int tileY = getYFromRealY(realY);
+        int targetX = BombermanGame.getBomberman().getX();
+        int targetY = BombermanGame.getBomberman().getY();
+
+
+    }
     int distance() {
         return (int) (Math.pow(BombermanGame.getBomberman().getRealX() - realX, 2)
                  + Math.pow(BombermanGame.getBomberman().getRealY() - realY, 2));
