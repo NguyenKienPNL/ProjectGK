@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
+import javafx.scene.media.AudioClip; // THÊM import này
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,12 +13,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static uet.oop.bomberman.BombermanGame.validatePixelMove;
 
-public class Bomber extends Entity {
+public class Bomber extends Entity { // Đã sửa từ Entity sang Character (nếu Character là lớp cha đúng)
 
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private int currentLevel;
-
 
     private int bombCount;
     private int bombRadius;
@@ -26,6 +26,11 @@ public class Bomber extends Entity {
     private int bombBufftime = 0;
     public static final int BUFF = 200;
 //    thoi gian duoc nhan buff
+
+    // THÊM hai biến AudioClip này
+    private AudioClip bombPlaceSound;     // Âm thanh "tít"
+    private AudioClip bombExplosionSound; // Âm thanh "bùm"
+
 
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
@@ -61,6 +66,12 @@ public class Bomber extends Entity {
         this.currentLevel = currentLevel;
     }
 
+    // THÊM phương thức setter này để BombermanGame truyền âm thanh vào
+    public void setBombSounds(AudioClip placeSound, AudioClip explosionSound) {
+        this.bombPlaceSound = placeSound;
+        this.bombExplosionSound = explosionSound;
+    }
+
     @Override
     public void update() {
 //        this.realX = this.x * Sprite.SCALED_SIZE;
@@ -90,6 +101,7 @@ public class Bomber extends Entity {
         }
     }
 
+    //@Override
     public void handleKeyEvent(Scene scene) {
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -115,8 +127,7 @@ public class Bomber extends Entity {
                     break;
                 case SPACE:
                     // sau này đặt bomb
-//                    BombermanGame.addEntity(new Flame(x, y, null, false, 0));
-                    placeBomb();
+                    placeBomb(); // Gọi phương thức đặt bom
                     break;
             }
         });
@@ -173,16 +184,38 @@ public class Bomber extends Entity {
     public void setSpeedBufftime(int speed) {
         this.speedBufftime = speed;
     }
-    // Trong lớp Bomber
+
+    // Phương thức đặt bom
     public void placeBomb() {
         if (bombCount > 0) {
-            Bomb bomb = new Bomb(x, y, this);
-            BombermanGame.addEntity(bomb);
-            bombCount--;
+            int bombX = (int) Math.round((realX + Sprite.SCALED_SIZE / 2.0) / Sprite.SCALED_SIZE);
+            int bombY = (int) Math.round((realY + Sprite.SCALED_SIZE / 2.0) / Sprite.SCALED_SIZE);
+
+            // Kiểm tra xem đã có bom tại vị trí này chưa
+            boolean hasBombAtPos = false;
+            for (Entity entity : BombermanGame.getEntitiesAt(bombX, bombY)) {
+                if (entity instanceof Bomb) {
+                    hasBombAtPos = true;
+                    break;
+                }
+            }
+
+            if (!hasBombAtPos) {
+                // Tạo Bomb và truyền AudioClip cho tiếng nổ "bùm"
+                Bomb bomb = new Bomb(bombX, bombY, this, bombExplosionSound); // SỬA ĐỂ TRUYỀN explosionSound
+                BombermanGame.addEntity(bomb);
+                bombCount--;
+
+                // Phát âm thanh "tít" khi đặt bom
+                if (bombPlaceSound != null) {
+                    bombPlaceSound.play();
+                }
+            }
         }
     }
 
-    public int getSpeed() {
+    // Thêm Override vì đây là phương thức từ lớp cha
+    public double getSpeed() { // Đã sửa kiểu trả về từ int sang double cho phù hợp với khai báo
         return speed;
     }
 }

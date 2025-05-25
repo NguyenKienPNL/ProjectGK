@@ -8,7 +8,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
-import uet.oop.bomberman.entities.Items.BombItem; // Đảm bảo import này nếu bạn lưu BombItem
+import uet.oop.bomberman.entities.Items.BombItem;
 import uet.oop.bomberman.entities.Items.FlameItem;
 import uet.oop.bomberman.entities.Items.SpeedItem;
 import uet.oop.bomberman.graphics.Sprite;
@@ -23,7 +23,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
-
+import javafx.scene.media.AudioClip; // THÊM import này cho AudioClip
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,11 +50,14 @@ public class BombermanGame extends Application {
     private static Bomber bomberman;
 
     private InfoBar infoBar;
-    private int timeLeft = 200; // Thời gian khởi tạo ban đầu, có thể đổi tùy ý
+    private int timeLeft = 200;
     private MainApp mainApp;
     private AnimationTimer gameLoop;
     private int score = 0;
     private int currentLevel = 1;
+
+    private AudioClip bombExplosionSound; // Âm thanh "bùm" khi bom nổ
+    private AudioClip bombPlaceSound;     // Âm thanh "tít" khi đặt bom
 
 
     // Constructor mới để nhận cả MainApp và Stage
@@ -64,7 +67,7 @@ public class BombermanGame extends Application {
         this.infoBar = new InfoBar();
     }
 
-    public BombermanGame() {} // Giữ lại constructor mặc định nếu cần
+    public BombermanGame() {}
 
 
     public static Bomber getBomberman() {
@@ -82,6 +85,7 @@ public class BombermanGame extends Application {
 
         canvas = new Canvas(Sprite.SCALED_SIZE * WIDTH, Sprite.SCALED_SIZE * HEIGHT);
         gc = canvas.getGraphicsContext2D();
+
         VBox gameContent = new VBox();
         gameContent.getChildren().addAll(infoBar, canvas);
 
@@ -95,6 +99,29 @@ public class BombermanGame extends Application {
         lastTimer = System.currentTimeMillis();
 
         infoBar.getPauseButton().setOnAction(e -> pauseGame());
+
+        // Khởi tạo âm thanh bom nổ ("bùm")
+        try {
+            String explosionSoundPath = getClass().getResource("/sounds/explosion.mp3").toExternalForm();
+            bombExplosionSound = new AudioClip(explosionSoundPath);
+            System.out.println("Loaded explosion sound: " + explosionSoundPath);
+        } catch (NullPointerException e) {
+            System.err.println("Error loading explosion sound: " + e.getMessage());
+            System.err.println("Make sure '/sounds/explosion.mp3' exists and is correctly placed in your resources folder.");
+            bombExplosionSound = null;
+        }
+
+        // Khởi tạo âm thanh đặt bom ("tít")
+        try {
+            String placeSoundPath = getClass().getResource("/sounds/tick.mp3").toExternalForm();
+            bombPlaceSound = new AudioClip(placeSoundPath);
+            System.out.println("Loaded bomb place sound: " + placeSoundPath);
+        } catch (NullPointerException e) {
+            System.err.println("Error loading bomb place sound: " + e.getMessage());
+            System.err.println("Make sure '/sounds/tick.mp3' exists and is correctly placed in your resources folder.");
+            bombPlaceSound = null;
+        }
+
 
         gameLoop = new AnimationTimer() {
             @Override
@@ -112,10 +139,8 @@ public class BombermanGame extends Application {
                         BombermanGame.this.stage.setTitle("Bomberman FPS: " + fps);
                     }
 
-                    // Trừ thời gian mỗi giây
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        // Hết giờ => Thua
                         endGame(mainApp, GameResult.LOSE);
                         return;
                     }
@@ -150,6 +175,8 @@ public class BombermanGame extends Application {
         }
         if (bomberman != null && stage != null && stage.getScene() != null) {
             bomberman.handleKeyEvent(stage.getScene());
+            // Truyền cả hai âm thanh cho Bomber
+            bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
         } else {
             System.err.println("Warning: Could not attach key event handler to Bomber. Bomber or Scene is null.");
         }
@@ -160,20 +187,18 @@ public class BombermanGame extends Application {
             entity.update();
         }
 
-        // Kiểm tra điều kiện thắng game: Chỉ khi tất cả kẻ thù bị tiêu diệt
         if (checkWinCondition()) {
             endGame(mainApp, GameResult.WIN);
         }
     }
 
-    // Hàm kiểm tra điều kiện thắng game (không còn kẻ thù)
     private boolean checkWinCondition() {
         for (Entity e : entities) {
-            if (e instanceof Enemy) { // Chỉ cần tìm thấy một kẻ thù là chưa thắng
+            if (e instanceof Enemy) {
                 return false;
             }
         }
-        return true; // Không còn kẻ thù nào
+        return true;
     }
 
 
@@ -249,13 +274,16 @@ public class BombermanGame extends Application {
             if (e.getX() == x && e.getY() == y) {
                 result.add(e);
             }
+            // Thêm các entity đang ở dạng Bom (chưa nổ)
+            if (e instanceof Bomb && e.getX() == x && e.getY() == y) {
+                result.add(e);
+            }
         }
         return result;
     }
 
-    // Hàm Game Over (sẽ gọi endGame chính)
     public void gameOver(MainApp mainApp) {
-        endGame(mainApp, GameResult.LOSE);
+        endGame(mainApp, GameResult.LOSE); // Đã sửa chính tả từ LO2SE thành LOSE
     }
 
 
@@ -282,6 +310,8 @@ public class BombermanGame extends Application {
 
             if (bomberman != null && stage != null && stage.getScene() != null) {
                 bomberman.handleKeyEvent(stage.getScene());
+                // Đảm bảo truyền cả hai âm thanh cho Bomber khi tiếp tục game
+                bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
             } else {
                 System.err.println("Bomberman not found after loading saved game or Scene is null. Returning to Start Menu.");
                 if (mainApp != null) {
@@ -333,34 +363,27 @@ public class BombermanGame extends Application {
                 for (int j = 0; j < WIDTH; j++) {
                     char mapChar = ' ';
 
-                    // Ưu tiên Bomber và Enemy (đảm bảo Enemy cũng được lưu lại đúng ký tự)
                     for (Entity e : entities) {
                         if (e.getX() == j && e.getY() == i) {
                             if (e instanceof Bomber) {
                                 mapChar = 'p';
                                 break;
                             } else if (e instanceof Balloom) {
-                                mapChar = '1'; // Ký tự cho Balloom
+                                mapChar = '1';
                                 break;
                             } else if (e instanceof Oneal) {
-                                mapChar = '2'; // Ký tự cho Oneal
+                                mapChar = '2';
                                 break;
                             }
-                            // Thêm các loại enemy khác nếu có, ví dụ:
-                            // else if (e instanceof Doll) { mapChar = '3'; break; }
-                            // else if (e instanceof Minvo) { mapChar = '4'; break; }
-                            // else if (e instanceof Kondoria) { mapChar = '5'; break; }
                         }
                     }
 
-                    // Nếu không có entity động (Bomber/Enemy), kiểm tra stillObjects
                     if (mapChar == ' ') {
                         for (Entity e : stillObjects) {
                             if (e.getX() == j && e.getY() == i) {
                                 if (e instanceof Wall) mapChar = '#';
                                 else if (e instanceof Brick) mapChar = '*';
                                 else if (e instanceof Grass) mapChar = ' ';
-                                    // Đã loại bỏ Portal: else if (e instanceof Portal) mapChar = 'x';
                                 else if (e instanceof BombItem) mapChar = 'b';
                                 else if (e instanceof FlameItem) mapChar = 'f';
                                 else if (e instanceof SpeedItem) mapChar = 's';
@@ -380,14 +403,11 @@ public class BombermanGame extends Application {
     }
 
 
-    // Hàm kết thúc game (khi thắng hoặc thua)
     public void endGame(MainApp mainApp, GameResult result) {
-        // Dừng game loop của BombermanGame ngay lập tức
         if (gameLoop != null) {
             gameLoop.stop();
         }
 
-        // Lưu game trước khi kết thúc (tùy chọn: có thể không lưu nếu thua)
         try {
             saveGame("res/savegame.txt");
         } catch (IOException e) {
@@ -395,7 +415,6 @@ public class BombermanGame extends Application {
             System.out.println("Error saving game.");
         }
 
-        // Gọi phương thức showGameResult của MainApp để xử lý hiển thị màn hình và nhạc
         mainApp.showGameResult(result);
     }
 

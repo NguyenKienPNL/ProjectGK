@@ -5,6 +5,7 @@ import java.util.List;
 import javafx.scene.image.Image;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
+import javafx.scene.media.AudioClip; // THÊM import này
 
 public class Bomb extends Entity {
     private static final int TIME_TO_EXPLORE = 120;
@@ -13,10 +14,13 @@ public class Bomb extends Entity {
     private boolean exploded = false;
     private FlameSegments flameSegments;
     private List<Image> bombAnimation = new ArrayList<>();
+    private AudioClip explosionSound; // THÊM biến này để lưu trữ âm thanh "bùm"
 
-    public Bomb(int x, int y, Bomber owner) {
+    // Cập nhật constructor để nhận AudioClip cho tiếng nổ
+    public Bomb(int x, int y, Bomber owner, AudioClip explosionSound) { // SỬA DÒNG NÀY
         super(x, y, Sprite.bomb.getFxImage());
         this.owner = owner;
+        this.explosionSound = explosionSound; // Gán AudioClip được truyền vào
         initAnimation();
     }
 
@@ -37,6 +41,11 @@ public class Bomb extends Entity {
         } else if (flameSegments != null) {
             flameSegments.update();
             if(flameSegments.isFinished()) {
+                // Dòng này cần xem xét lại logic của bạn.
+                // Nếu mục đích là xóa FlameSegments, bạn có thể cần một phương thức
+                // removeEntity tổng quát hơn trong BombermanGame, ví dụ:
+                // BombermanGame.removeEntity(flameSegments);
+                // Giữ nguyên logic hiện tại của bạn nếu bạn đã có cách xử lý này.
                 BombermanGame.removeFlame(this);
             }
         }
@@ -52,6 +61,12 @@ public class Bomb extends Entity {
     public void exploded() {
         exploded = true;
         img = Sprite.bomb_exploded.getFxImage();
+
+        // PHÁT ÂM THANH "BÙM" KHI BOM NỔ
+        if (explosionSound != null) {
+            explosionSound.play();
+        }
+
         flameSegments = new FlameSegments(x, y, owner );
         owner.decreaseBomb();
         BombermanGame.addEntity(flameSegments);
