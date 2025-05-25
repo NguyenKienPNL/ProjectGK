@@ -181,4 +181,8 @@ public class Bomber extends Entity {
             bombCount--;
         }
     }
+
+    public int getSpeed() {
+        return speed;
+    }
 }
