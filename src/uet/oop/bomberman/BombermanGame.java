@@ -44,7 +44,7 @@ public class BombermanGame extends Application {
     private static Bomber bomberman;
 
     
-    public BombermanGame() {}
+    public BombermanGame(MainApp mainApp, Stage primaryStage) {}
     public BombermanGame(Stage stage) {
         this.stage = stage;
     }
