@@ -49,9 +49,7 @@ public class BombermanGame extends Application {
         this.stage = stage;
     }
 
-    public BombermanGame(MainApp mainApp, Stage primaryStage) {
 
-    }
 
     public static Bomber getBomberman() {
         return bomberman;
