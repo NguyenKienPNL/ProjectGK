@@ -39,7 +39,6 @@ public class BombermanGame extends Application {
     public int frames = 0;
     private long lastTimer;
 
-    // GIỮ CÁC DANH SÁCH NÀY LÀ STATIC
     public static List<Entity> entities = new ArrayList<>();
     public static List<Entity> stillObjects = new ArrayList<>();
 
@@ -51,6 +50,11 @@ public class BombermanGame extends Application {
     private InfoBar infoBar;
 
     private AnimationTimer gameTimer;
+
+    private int currentLevel = 1;
+    private final int TOTAL_LEVELS = 3;
+
+    private static Portal levelPortal;
 
     private final int GAME_DURATION_SECONDS = 15;
     private int remainingTime = GAME_DURATION_SECONDS;
@@ -65,7 +69,8 @@ public class BombermanGame extends Application {
         this.stage = stage;
     }
 
-    public BombermanGame() {}
+    public BombermanGame() {
+    }
 
     public static Bomber getBomberman() {
         return bomberman;
@@ -114,14 +119,13 @@ public class BombermanGame extends Application {
         }
 
         createMap(); // Gọi createMap để tải map và các entities
-
-        // Tìm Bomber sau khi map đã được tạo và entities đã được load
-        for (Entity e : entities) {
-            if (e instanceof Bomber) {
-                bomberman = (Bomber) e;
-                break;
-            }
+        if (infoBar != null) {
+            infoBar.setLevel(currentLevel); // Cập nhật InfoBar
         }
+        // **ĐIỀU CHỈNH TẠI ĐÂY:** Di chuyển vòng lặp tìm kiếm Bomber và Portal vào một phương thức riêng
+        // để tránh lặp lại và đảm bảo logic tập trung.
+        findBomberAndPortal();
+
 
         if (bomberman != null) {
             bomberman.handleKeyEvent(scene);
@@ -129,7 +133,9 @@ public class BombermanGame extends Application {
         } else {
             System.err.println("Warning: Bomber object not found in entities after map creation.");
         }
-
+        if (levelPortal == null) {
+            System.err.println("Warning: Portal object not found in entities after map creation.");
+        }
 
         lastTimer = System.currentTimeMillis();
         gameTimer = new AnimationTimer() {
@@ -144,7 +150,7 @@ public class BombermanGame extends Application {
 
                 if (now - lastTimer >= 1_000_000_000) {
                     fps = frames;
-                    System.out.println("FPS: " + fps);
+                    System.out.println("FPS: + fps");
                     frames = 0;
                     lastTimer = now;
                     stage.setTitle("Bomberman FPS: " + fps);
@@ -171,10 +177,11 @@ public class BombermanGame extends Application {
         // THÊM DÒNG NÀY: Xóa các thực thể cũ trước khi tạo map mới
         entities.clear();
         stillObjects.clear();
-        bomberman = null; // Đảm bảo bomberman được reset
+        // Không cần gán bomberman = null; và levelPortal = null; ở đây
+        // vì chúng ta sẽ gán lại chúng trong findBomberAndPortal() ngay sau đó.
 
         LevelLoader levelLoader = new LevelLoader();
-        LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level2.txt");
+        LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level" + currentLevel + ".txt");
 
         map = levelInfo.map;
         stillObjects = levelLoader.loadStillObjects(levelInfo);
@@ -186,23 +193,36 @@ public class BombermanGame extends Application {
         if (infoBar != null) {
             infoBar.setTime(remainingTime);
             infoBar.setScore(0); // Reset score khi game mới
-            infoBar.setLevel(1); // Reset level khi game mới
+        }
+    }
+
+    // **PHƯƠNG THỨC MỚI ĐƯỢC THÊM VÀO ĐÂY**
+    private void findBomberAndPortal() {
+        bomberman = null; // Đảm bảo reset trước khi tìm kiếm
+        levelPortal = null; // Đảm bảo reset trước khi tìm kiếm
+        for (Entity e : entities) {
+            if (e instanceof Bomber) {
+                bomberman = (Bomber) e;
+            } else if (e instanceof Portal) {
+                levelPortal = (Portal) e;
+            }
+            if (bomberman != null && levelPortal != null) {
+                break; // Tìm thấy cả hai, thoát vòng lặp
+            }
         }
     }
 
     public void update() {
-        // Cần copy danh sách entities để tránh lỗi ConcurrentModificationException
-        // nếu có entities bị xóa trong quá trình update (ví dụ: enemy chết)
         List<Entity> entitiesCopy = new ArrayList<>(entities);
         for (int i = entitiesCopy.size() - 1; i >= 0; i--) {
             entitiesCopy.get(i).update();
         }
-        // entities có thể đã thay đổi, không cần gán lại entitiesCopy vào entities
 
         if (bomberman != null) {
             infoBar.setScore(bomberman.getScore());
-            infoBar.setLevel(bomberman.getCurrentLevel());
+            infoBar.setLevel(this.currentLevel);
         }
+        checkLevelCompletion(); // Gọi phương thức kiểm tra qua màn
     }
 
     public static void addEntity(Entity e) {
@@ -249,7 +269,7 @@ public class BombermanGame extends Application {
     }
 
     public static boolean hasPlayerOrEnemyAt(int x, int y) {
-        for(Entity e : entities) {
+        for (Entity e : entities) {
             if ((e instanceof Bomber || e instanceof Enemy) && x == e.getX() && e.getY() == y) {
                 return true;
             }
@@ -268,20 +288,15 @@ public class BombermanGame extends Application {
 
     public static List<Entity> getEntitiesAt(int x, int y) {
         List<Entity> result = new ArrayList<>();
-        for (Entity e: entities) {
-            // Kiểm tra theo tọa độ ô, không phải pixel
+        for (Entity e : entities) {
             if (e.getX() == x && e.getY() == y) {
                 result.add(e);
             }
-            // Logic thêm Bomb có thể phức tạp hơn nếu bomb không chiếm trọn 1 ô
-            // Hiện tại, e.getX() và e.getY() của Bomb cũng là tọa độ ô
         }
         return result;
     }
 
     public void gameOver(MainApp mainApp) {
-        // Phương thức này hiện tại không còn được gọi trực tiếp khi hết giờ,
-        // nhưng vẫn có thể dùng cho các trường hợp game over khác (ví dụ: bomber chết)
         GameResultScreen gameOverScreen = new GameResultScreen(mainApp, GameResult.LOSE);
         Scene gameOverScene = new Scene(gameOverScreen);
         stage.setScene(gameOverScene);
@@ -291,38 +306,29 @@ public class BombermanGame extends Application {
         System.out.println("Continuing game...");
 
         try {
-            // Đảm bảo clear trước khi load game đã lưu
             entities.clear();
             stillObjects.clear();
-            bomberman = null; // Đảm bảo bomberman được reset
+            // Không cần gán bomberman = null; và levelPortal = null; ở đây.
 
             LevelLoader levelLoader = new LevelLoader();
             LevelLoader.LevelInfo levelInfo = levelLoader.loadSavedLevel("res/savegame.txt");
 
-            // Load dữ liệu game đã lưu
             map = levelInfo.map;
             stillObjects = levelLoader.loadStillObjects(levelInfo);
             List<Entity> loadedEntities = levelLoader.loadEntities(levelInfo);
             entities.addAll(loadedEntities);
 
-            // Tìm bomberman mới sau khi load
-            for (Entity e : entities) {
-                if (e instanceof Bomber) {
-                    bomberman = (Bomber) e;
-                    break;
-                }
-            }
+            // **ĐIỀU CHỈNH TẠI ĐÂY:** Gọi phương thức tìm kiếm chung
+            findBomberAndPortal();
 
-            // Reset thời gian và cập nhật InfoBar dựa trên trạng thái game đã lưu (nếu có)
-            remainingTime = GAME_DURATION_SECONDS; // Hoặc load từ savegame nếu bạn lưu thời gian
+            remainingTime = GAME_DURATION_SECONDS;
             if (infoBar != null) {
                 infoBar.setTime(remainingTime);
                 if (bomberman != null) {
                     infoBar.setScore(bomberman.getScore());
-                    infoBar.setLevel(bomberman.getCurrentLevel());
+                    infoBar.setLevel(this.currentLevel);
                 }
             }
-
 
             if (bomberman != null && stage != null && stage.getScene() != null) {
                 Scene currentScene = stage.getScene();
@@ -338,6 +344,7 @@ public class BombermanGame extends Application {
 
             gameTimer = new AnimationTimer() {
                 private long lastSecondTime = 0;
+
                 @Override
                 public void handle(long now) {
                     update();
@@ -369,7 +376,6 @@ public class BombermanGame extends Application {
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error loading saved game.");
-            // Quay về menu nếu load game lỗi
             if (mainAppInstance != null) {
                 mainAppInstance.showStartMenu();
             }
@@ -388,9 +394,7 @@ public class BombermanGame extends Application {
             bombPlaceSound.stop();
             bombPlaceSound = null;
         }
-        // KHÔNG CẦN CLEAR CÁC LIST STATIC Ở ĐÂY NỮA
-        // Chúng sẽ được clear ở createMap() hoặc continueGame()
-        bomberman = null; // Đảm bảo bomberman được reset
+        bomberman = null;
         System.out.println("BombermanGame instance stopped.");
     }
 
@@ -407,17 +411,45 @@ public class BombermanGame extends Application {
 
                     for (Entity entity : entities) {
                         if (entity.getX() == j && entity.getY() == i) {
-                            if (entity instanceof Bomber) { mapChar = 'p'; found = true; break; }
-                            else if (entity instanceof Balloom) { mapChar = '1'; found = true; break; }
-                            else if (entity instanceof Oneal) { mapChar = '2'; found = true; break; }
+                            if (entity instanceof Bomber) {
+                                mapChar = 'p';
+                                found = true;
+                                break;
+                            } else if (entity instanceof Balloom) {
+                                mapChar = '1';
+                                found = true;
+                                break;
+                            } else if (entity instanceof Oneal) {
+                                mapChar = '2';
+                                found = true;
+                                break;
+                            } else if (entity instanceof Portal) { // Nếu Portal đã hiện
+                                mapChar = 'x'; // Lưu lại Portal
+                                found = true;
+                                break;
+                            }
                         }
                     }
 
-                    if (!found) {
+                    if (!found) { // Nếu chưa tìm thấy entity động, kiểm tra stillObjects
                         for (Entity entity : stillObjects) {
                             if (entity.getX() == j && entity.getY() == i) {
-                                if (entity instanceof Wall) { mapChar = '#'; found = true; break; }
-                                else if (entity instanceof Brick) { mapChar = '*'; found = true; break; }
+                                if (entity instanceof Wall) {
+                                    mapChar = '#';
+                                    found = true;
+                                    break;
+                                }
+                                // KHÔNG LƯU BRICK TRONG STILLOBJECTS NỮA, NÓ LÀ ENTITY ĐỘNG
+                                // Bricks sẽ được đọc lại khi load game mới.
+                            }
+                        }
+                    }
+                    if (!found) { // Nếu vẫn chưa tìm thấy, kiểm tra Brick
+                        for (Entity entity : entities) {
+                            if (entity instanceof Brick && entity.getX() == j && entity.getY() == i) {
+                                mapChar = '*'; // Lưu Brick
+                                found = true;
+                                break;
                             }
                         }
                     }
@@ -426,11 +458,11 @@ public class BombermanGame extends Application {
                 writer.write(line.toString());
                 writer.newLine();
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     public void endGame(MainApp mainApp, GameResult result) {
         try {
@@ -440,11 +472,10 @@ public class BombermanGame extends Application {
             System.out.println("Error saving game.");
         }
 
-        // Gọi mainApp để xử lý kết quả game, bao gồm đổi nhạc
         if (mainApp != null) {
             mainApp.showGameResult(result);
         } else {
-            showGameResult(null, result); // Fallback nếu mainApp null
+            showGameResult(null, result);
         }
     }
 
@@ -466,18 +497,160 @@ public class BombermanGame extends Application {
         if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)) return false;
 
         for (Entity e : getEntitiesAt(tileLeft, tileTop)) {
-            if (e instanceof Bomb && !((Bomb)e).isExploded()) return false;
+            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
         }
         for (Entity e : getEntitiesAt(tileRight, tileTop)) {
-            if (e instanceof Bomb && !((Bomb)e).isExploded()) return false;
+            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
         }
         for (Entity e : getEntitiesAt(tileLeft, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb)e).isExploded()) return false;
+            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
         }
         for (Entity e : getEntitiesAt(tileRight, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb)e).isExploded()) return false;
+            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
         }
 
         return true;
+    }
+
+
+    private void checkLevelCompletion() {
+        if (bomberman == null || levelPortal == null) {
+            return; // Không làm gì nếu bomberman hoặc portal chưa được tạo
+        }
+
+        // 1. Kiểm tra tất cả quái vật đã bị tiêu diệt
+        boolean allEnemiesDead = true;
+        for (Entity e : entities) {
+            if (e instanceof Enemy) {
+                allEnemiesDead = false;
+                break;
+            }
+        }
+
+        // 2. Nếu tất cả quái vật đã chết, kiểm tra và hiện Portal
+        if (allEnemiesDead) {
+            // Kiểm tra xem có Brick nào đang che Portal không
+            boolean isBrickAtPortalLocation = false;
+            for (Entity e : entities) { // Duyệt qua entities (nơi Brick đang nằm)
+                if (e instanceof Brick && e.getX() == levelPortal.getX() && e.getY() == levelPortal.getY()) {
+                    isBrickAtPortalLocation = true;
+                    break;
+                }
+            }
+
+            // Nếu không có Brick nào ở vị trí Portal và Portal đang bị ẩn, thì hiện Portal
+            if (!isBrickAtPortalLocation && levelPortal.isHidden()) {
+                levelPortal.setHidden(false);
+                System.out.println("Portal is now visible!");
+            }
+
+            // 3. Nếu Portal đã hiện và Bomber đứng trên đó
+            if (!levelPortal.isHidden() && bomberman.getX() == levelPortal.getX() && bomberman.getY() == levelPortal.getY()) {
+                System.out.println("Level " + currentLevel + " completed!");
+                currentLevel++;
+                if (currentLevel <= TOTAL_LEVELS) {
+                    System.out.println("Moving to Level " + currentLevel);
+                    loadNextLevel();
+                } else {
+                    System.out.println("All levels completed! You Win!");
+                    if (gameTimer != null) {
+                        gameTimer.stop();
+                    }
+                    if (mainAppInstance != null) {
+                        mainAppInstance.showGameResult(GameResult.WIN);
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    private void loadNextLevel() {
+        if (gameTimer != null) {
+            gameTimer.stop();
+        }
+
+        if (mainAppInstance != null) {
+            mainAppInstance.stopBackgroundMusic();
+            mainAppInstance.playBackgroundMusic("res/sounds/game_music.mp3");
+        }
+
+        remainingTime = GAME_DURATION_SECONDS;
+        if (infoBar != null) {
+            infoBar.setTime(remainingTime);
+        }
+
+        entities.clear();
+        stillObjects.clear();
+        // Không cần gán bomberman = null; và levelPortal = null; ở đây.
+
+        try {
+            LevelLoader levelLoader = new LevelLoader();
+            LevelLoader.LevelInfo levelInfo = levelLoader.loadLevel("res/levels/level" + currentLevel + ".txt");
+
+            map = levelInfo.map;
+            stillObjects = levelLoader.loadStillObjects(levelInfo);
+            List<Entity> loadedEntities = levelLoader.loadEntities(levelInfo);
+            entities.addAll(loadedEntities);
+
+            // **ĐIỀU CHỈNH TẠI ĐÂY:** Gọi phương thức tìm kiếm chung
+            findBomberAndPortal();
+
+            if (bomberman != null && stage != null && stage.getScene() != null) {
+                Scene currentScene = stage.getScene();
+                bomberman.handleKeyEvent(currentScene);
+                bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
+                infoBar.setLevel(currentLevel);
+            } else {
+                System.err.println("Warning: Bomber object not found after loading new level.");
+                if (mainAppInstance != null) {
+                    mainAppInstance.showGameResult(GameResult.LOSE);
+                }
+            }
+
+            lastTimer = System.currentTimeMillis();
+            gameTimer = new AnimationTimer() {
+                private long lastSecondTime = 0;
+
+                @Override
+                public void handle(long now) {
+                    update();
+                    render();
+
+                    frames++;
+
+                    if (now - lastTimer >= 1_000_000_000) {
+                        fps = frames;
+                        System.out.println("FPS: " + fps);
+                        frames = 0;
+                        lastTimer = now;
+                        stage.setTitle("Bomberman FPS: " + fps);
+
+                        remainingTime--;
+                        infoBar.setTime(remainingTime);
+
+                        if (remainingTime <= 0) {
+                            System.out.println("Time is up! Game Over.");
+                            gameTimer.stop();
+                            if (mainAppInstance != null) {
+                                mainAppInstance.showGameResult(GameResult.LOSE);
+                            }
+                        }
+                    }
+                    if (bomberman != null) {
+                        infoBar.setScore(bomberman.getScore());
+                        infoBar.setLevel(bomberman.getCurrentLevel());
+                    }
+                }
+            };
+            gameTimer.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error loading next level: " + e.getMessage());
+            if (mainAppInstance != null) {
+                mainAppInstance.showGameResult(GameResult.LOSE);
+            }
+        }
     }
 }
