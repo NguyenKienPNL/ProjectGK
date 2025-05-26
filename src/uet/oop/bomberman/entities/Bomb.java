@@ -5,6 +5,7 @@ import java.util.List;
 import javafx.scene.image.Image;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
+import javafx.scene.media.AudioClip;
 
 public class Bomb extends Entity {
     private static final int TIME_TO_EXPLORE = 120;
@@ -14,11 +15,30 @@ public class Bomb extends Entity {
     private FlameSegments flameSegments;
     private List<Image> bombAnimation = new ArrayList<>();
 
-    public Bomb(int x, int y, Bomber owner) {
+    private AudioClip explosionSound;
+    private AudioClip tickSound; // THÊM biến AudioClip cho tiếng tick
+
+    // CẬP NHẬT constructor để nhận cả hai AudioClip
+    public Bomb(int x, int y, Bomber owner, AudioClip explosionSound, AudioClip tickSound) {
         super(x, y, Sprite.bomb.getFxImage());
         this.owner = owner;
+        this.explosionSound = explosionSound;
+        this.tickSound = tickSound; // GÁN âm thanh tick được truyền vào
         initAnimation();
+
+        // BẮT ĐẦU PHÁT ÂM THANH TICK KHI BOMB ĐƯỢC TẠO
+        if (this.tickSound != null) {
+            this.tickSound.setCycleCount(AudioClip.INDEFINITE); // Phát lặp lại vô hạn
+            this.tickSound.play();
+            System.out.println("Bomb tick sound started!"); // Debug
+        }
     }
+
+    // Constructor cũ (có thể bỏ đi nếu tất cả các nơi gọi Bomb đều dùng constructor mới)
+    public Bomb(int x, int y, Bomber owner) {
+        this(x, y, owner, null, null); // Gọi constructor mới với cả hai âm thanh là null
+    }
+
 
     private void initAnimation() {
         bombAnimation.add(Sprite.bomb.getFxImage());
@@ -37,7 +57,9 @@ public class Bomb extends Entity {
                 owner.increaseBomb();
             }
         } else {
-            flameSegments.update();
+            if (flameSegments != null) {
+                flameSegments.update();
+            }
         }
     }
 
@@ -48,13 +70,28 @@ public class Bomb extends Entity {
         }
     }
 
+
     public void exploded() {
         exploded = true;
         img = Sprite.bomb_exploded.getFxImage();
-        flameSegments = new FlameSegments(x, y, owner );
-        owner.decreaseBomb();
+
+        // DỪNG ÂM THANH TICK KHI BOM NỔ
+        if (tickSound != null && tickSound.isPlaying()) {
+            tickSound.stop();
+            System.out.println("Bomb tick sound stopped!"); // Debug
+        }
+
+        // PHÁT ÂM THANH BOM NỔ
+        if (explosionSound != null) {
+            explosionSound.play();
+            System.out.println("Bomb explosion sound played!"); // Debug
+        }
+
+        flameSegments = new FlameSegments(x, y, owner);
+        // owner.decreaseBomb(); // Dòng này có vẻ dư hoặc sai logic
         BombermanGame.addEntity(flameSegments);
     }
+
     public boolean isExploded() {
         return exploded;
     }
