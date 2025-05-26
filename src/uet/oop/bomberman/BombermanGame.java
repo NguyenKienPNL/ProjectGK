@@ -118,8 +118,8 @@ public class BombermanGame extends Application {
 
     public void update() {
         // Update toàn bộ các entity động
-        for (Entity entity : entities) {
-            entity.update();
+        for (int i = entities.size() - 1; i >= 0; i--) {
+            entities.get(i).update();
         }
     }
 
