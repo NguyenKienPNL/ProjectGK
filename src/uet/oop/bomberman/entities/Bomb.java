@@ -7,8 +7,8 @@ import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
 
 public class Bomb extends Entity {
-    private static final int TIME_TO_EXPLORE = 120;
-    private int countdown = TIME_TO_EXPLORE;
+    private static final int TIME_TO_EXPLODE = 120;
+    private int countdown = TIME_TO_EXPLODE;
     private Bomber owner;
     private boolean exploded = false;
     private FlameSegments flameSegments;
@@ -34,16 +34,13 @@ public class Bomb extends Entity {
             if (countdown <= 0) {
                 exploded();
             }
-        } else if (flameSegments != null) {
-            flameSegments.update();
-            if(flameSegments.isFinished()) {
-                BombermanGame.removeFlame(this);
-            }
+        } else {
+            BombermanGame.removeEntity(this);
         }
     }
 
     private void animate() {
-        int frame = (TIME_TO_EXPLORE - countdown) / 20;
+        int frame = (TIME_TO_EXPLODE - countdown) / 20;
         if(frame < bombAnimation.size()) {
             img = bombAnimation.get(frame);
         }
@@ -53,9 +50,10 @@ public class Bomb extends Entity {
         exploded = true;
         img = Sprite.bomb_exploded.getFxImage();
         flameSegments = new FlameSegments(x, y, owner );
-        owner.decreaseBomb();
+        owner.increaseBomb();
         BombermanGame.addEntity(flameSegments);
     }
+
     public boolean isExploded() {
         return exploded;
     }
