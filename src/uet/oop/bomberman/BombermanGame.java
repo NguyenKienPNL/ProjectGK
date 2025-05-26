@@ -118,8 +118,8 @@ public class BombermanGame extends Application {
 
     public void update() {
         // Update toàn bộ các entity động
-        for (int i = entities.size() - 1; i >= 0; i--) {
-            entities.get(i).update();
+        for (Entity entity : entities) {
+            entity.update();
         }
     }
 
@@ -127,8 +127,13 @@ public class BombermanGame extends Application {
         entities.add(e);
     }
 
-    public static void removeEntity(Entity e) {
-        entities.remove(e);
+    public static void removeFlame(Entity e) {
+        for (int i = 0; i < entities.size(); i++) {
+            if (entities.get(i) instanceof FlameSegments && entities.get(i).equals(e)) {
+                entities.remove(i);
+                break;
+            }
+        }
     }
 
     public void render() {
