@@ -33,12 +33,11 @@ public class Bomb extends Entity {
             animate();
             if (countdown <= 0) {
                 exploded();
+                BombermanGame.removeEntity(this);
+                owner.increaseBomb();
             }
-        } else if (flameSegments != null) {
+        } else {
             flameSegments.update();
-            if(flameSegments.isFinished()) {
-                BombermanGame.removeFlame(this);
-            }
         }
     }
 
