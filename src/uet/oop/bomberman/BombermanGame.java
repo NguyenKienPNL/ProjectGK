@@ -49,6 +49,10 @@ public class BombermanGame extends Application {
         this.stage = stage;
     }
 
+    public BombermanGame(MainApp mainApp, Stage primaryStage) {
+
+    }
+
     public static Bomber getBomberman() {
         return bomberman;
     }
@@ -76,6 +80,7 @@ public class BombermanGame extends Application {
                 bomberman = (Bomber) e;
             }
         }
+
         bomberman.handleKeyEvent(scene);
 
         lastTimer = (int)System.currentTimeMillis();
@@ -127,13 +132,8 @@ public class BombermanGame extends Application {
         entities.add(e);
     }
 
-    public static void removeFlame(Entity e) {
-        for (int i = 0; i < entities.size(); i++) {
-            if (entities.get(i) instanceof FlameSegments && entities.get(i).equals(e)) {
-                entities.remove(i);
-                break;
-            }
-        }
+    public static void removeEntity(Entity e) {
+        entities.remove(e);
     }
 
     public void render() {

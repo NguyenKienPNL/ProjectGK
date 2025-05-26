@@ -133,7 +133,7 @@ public class MainApp extends Application {
         currentRunningGame = new BombermanGame(this, primaryStage);
         try {
             currentRunningGame.start(primaryStage);
-            currentRunningGame.createMap();
+//            currentRunningGame.createMap();
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error starting new game: " + e.getMessage());
