@@ -5,7 +5,6 @@ import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class FlameSegments extends Entity {
@@ -30,13 +29,13 @@ public class FlameSegments extends Entity {
         addDirection(0, 1, 3);  // down
 
         BombermanGame.entities.addAll(flames);
+        destroy();
     }
 
     public void update() {
-        animate();
+//        animate();
 
         if (isFinished()) {
-            destroy();
             System.out.println(destroyEntities.size());
             bomber.increaseBomb();
             BombermanGame.removeEntity(this);
@@ -45,13 +44,6 @@ public class FlameSegments extends Entity {
 
     public List<Flame> getFlames() {
         return flames;
-    }
-
-    public void animate() {
-        int frame = (DISPLAY_TIME - countdown) / 40;
-        for (Flame flame : flames) {
-            if (!flame.isFinished()) flame.getFrame(frame);
-        }
     }
 
     private void addDirection(int dx, int dy, int direction) {
@@ -132,8 +124,9 @@ public class FlameSegments extends Entity {
                 ((Brick) entity).destroy();
             } else if (entity instanceof Bomber) {
                 ((Bomber) entity).destroy();
-            } else {
+            } else if (entity instanceof  Enemy){
                 ((Enemy) entity).destroy();
+                bomber.addScore(((Enemy) entity).getPoint());
             }
         }
     }

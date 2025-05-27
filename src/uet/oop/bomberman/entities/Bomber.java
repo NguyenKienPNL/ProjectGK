@@ -7,6 +7,8 @@ import javafx.scene.media.AudioClip;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.UI.GameResult;
 import uet.oop.bomberman.UI.GameResultScreen;
+import uet.oop.bomberman.entities.Items.BombItem;
+import uet.oop.bomberman.entities.Items.Item;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.HashSet;
@@ -92,7 +94,6 @@ public class Bomber extends Entity {
         this.score += points;
     }
 
-
     @Override
     public void update() {
 //        this.realX = this.x * Sprite.SCALED_SIZE;
@@ -106,6 +107,14 @@ public class Bomber extends Entity {
 
         if (!isDead()) {
             // Logic khi Bomber còn sống (giữ nguyên)
+            if (BombermanGame.hasItemAt(x, y)) {
+                Item item = BombermanGame.itemAt(x, y);
+                if (item != null) {
+                    item.applyEffect(this);
+                    item.pickUp();
+                }
+            }
+
             if (speedBufftime > 0) {
                 speedBufftime--;
                 if (speedBufftime == 0) {
@@ -224,11 +233,11 @@ public class Bomber extends Entity {
     }
 
     public void increaseSpeed() {
-        speed++;
+        speed += 5;
     }
 
     public void decreaseSpeed() {
-        speed--;
+        speed -= 5;
     }
 
     public void setBombBufftime(int bomb) {

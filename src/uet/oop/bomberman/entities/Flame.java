@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Flame extends Entity {
-    private static final int maxFrames = 120;
+    private static final int maxFrames = 30;
+    private static final int animateDuration = 10;
     private List<Image> explodeList = new ArrayList<>();
     private int direction;
     private boolean isLast;
     private int frameCount;
-    private int frameIndex;
 
 
 
@@ -35,6 +35,8 @@ public class Flame extends Entity {
         if (isFinished()) {
             BombermanGame.removeEntity(this);
         }
+
+        img = explodeList.get((frameCount / animateDuration) % 3);
     }
 
     public void getFrame(int index) {

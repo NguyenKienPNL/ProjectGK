@@ -4,6 +4,7 @@ import javafx.scene.image.Image;
 
 public abstract class Enemy extends Entity {
     protected int animate;
+    protected int point;
     protected static final int maxAnimate = 30;
 
     protected boolean isDead = false;
@@ -20,5 +21,9 @@ public abstract class Enemy extends Entity {
     public void destroy() {
         isDead = true;
         animate = 0;
+    }
+
+    public int getPoint() {
+        return point;
     }
 }

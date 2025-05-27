@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import uet.oop.bomberman.UI.GameResultScreen;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
+import uet.oop.bomberman.entities.Items.Item;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.UI.MainApp;
 import uet.oop.bomberman.UI.InfoBar;
@@ -60,7 +61,7 @@ public class BombermanGame extends Application {
 
     private static Portal levelPortal;
 
-    private final int GAME_DURATION_SECONDS = 25;
+    private final int GAME_DURATION_SECONDS = 125;
     private int remainingTime = GAME_DURATION_SECONDS;
     private MainApp mainAppInstance;
 
@@ -679,5 +680,30 @@ public class BombermanGame extends Application {
             }
         }
         return false;
+    }
+
+    public static boolean hasItemAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            if (e instanceof Item && e.getX() == tileX && e.getY() == tileY) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static Item itemAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            if (e instanceof Item && e.getX() == tileX && e.getY() == tileY) {
+                return (Item) e;
+            }
+        }
+        return null;
+    }
+
+    public List<Entity> getEntities() {
+        return entities;
+    }
+
+    public static List<Entity> getStillObjects() {
+        return stillObjects;
     }
 }

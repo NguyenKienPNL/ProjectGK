@@ -123,6 +123,7 @@ public class LevelLoader {
             }
         }
 
+        entities.add(new ItemDistribute(1, 1, null));
         return entities;
     }
 

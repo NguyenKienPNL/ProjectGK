@@ -32,6 +32,7 @@ public class Oneal extends Enemy {
         this.radius = 10 * Sprite.SCALED_SIZE;
         this.direction = rand.nextInt(4);
         this.sprinted = false;
+        point = 20;
 //        map = BombermanGame.map;
     }
 
@@ -55,12 +56,12 @@ public class Oneal extends Enemy {
         //cap nhat toc do
         if (!sprinted && nearToBomberman()) {
             sprinted = true;
-            speed *= 2;
+            speed += 1;
         }
 
         if (sprinted && !nearToBomberman()) {
             sprinted = false;
-            speed /= 2;
+            speed -= 1;
         }
 
         // cac huong kha di

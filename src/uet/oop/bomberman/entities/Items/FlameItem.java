@@ -8,7 +8,6 @@ public class FlameItem extends Item {
 
     public FlameItem(int x, int y, Image img) {
         super(x, y, img);
-        this.img = frame1;
     }
 
     @Override

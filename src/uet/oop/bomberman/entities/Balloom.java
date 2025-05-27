@@ -19,6 +19,7 @@ public class Balloom extends Enemy{
         this.right_images.add(Sprite.balloom_right3.getFxImage());
 
         this.speed = 1;
+        point = 10;
     }
 
     public void update() {
