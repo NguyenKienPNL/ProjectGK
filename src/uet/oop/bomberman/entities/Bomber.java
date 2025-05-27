@@ -5,6 +5,8 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.media.AudioClip;
 import uet.oop.bomberman.BombermanGame;
+import uet.oop.bomberman.UI.GameResult;
+import uet.oop.bomberman.UI.GameResultScreen;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.HashSet;
@@ -33,6 +35,12 @@ public class Bomber extends Entity {
     // THÊM biến AudioClip để lưu trữ âm thanh tick khi đặt bom
     private AudioClip bombTickSound;
 
+    private BombermanGame gameInstance;
+    private boolean gameOverTriggered = false;
+
+    public void setGameInstance(BombermanGame gameInstance) {
+        this.gameInstance = gameInstance;
+    }
 
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
@@ -41,6 +49,7 @@ public class Bomber extends Entity {
         this.currentLevel = 1;
         this.bombCount = 1;
         this.score = 0; // THÊM DÒNG NÀY: Khởi tạo điểm số khi tạo Bomber
+
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());
@@ -90,37 +99,53 @@ public class Bomber extends Entity {
 //        this.realY = this.y * Sprite.SCALED_SIZE;
         this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
         this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
-        if (BombermanGame.hasEnemyAt(x, y)) {
-            destroy();
+        if (!isDead() && (BombermanGame.hasEnemyAt(x, y) || BombermanGame.hasFlameAt(x, y))) {
+            System.out.println("Bomber va chạm với kẻ thù hoặc ngọn lửa! Bắt đầu chết.");
+            destroy(); // Bắt đầu quá trình chết
         }
+
         if (!isDead()) {
-            //        het time buff tro ve trang thai ban dau
-            if(speedBufftime > 0) {
+            // Logic khi Bomber còn sống (giữ nguyên)
+            if (speedBufftime > 0) {
                 speedBufftime--;
-                if(speedBufftime == 0) {
+                if (speedBufftime == 0) {
                     decreaseSpeed();
                 }
             }
 
-            if(flameBufftime > 0) {
+            if (flameBufftime > 0) {
                 flameBufftime--;
-                if(flameBufftime == 0) {
+                if (flameBufftime == 0) {
                     decreaseFlameLength();
                 }
             }
 
-            if(bombBufftime > 0) {
+            if (bombBufftime > 0) {
                 bombBufftime--;
-                if(bombBufftime == 0) {
+                if (bombBufftime == 0) {
                     decreaseBomb();
                 }
             }
         } else {
+            // Logic khi Bomber đã chết
             animate++;
+
+            // Hiển thị animation chết trong một khoảng thời gian
+            // animate / animateDuration sẽ cho chỉ số frame. Math.min để tránh IndexOutOfBounds.
             if (animate <= maxAnimate) {
-                img = dead_images.get(animate / animateDuration);
-            } else {
-                // Chuyen giao dien chet
+                img = dead_images.get(Math.min(animate / animateDuration, dead_images.size() - 1));
+            }
+
+            // QUAN TRỌNG: Chuyển sang màn hình Game Over sau 1 giây (khoảng 60 frames ở 60 FPS)
+            // và chỉ thực hiện MỘT LẦN duy nhất
+            if (animate >= 60 && !gameOverTriggered) { // Sử dụng cờ gameOverTriggered để đảm bảo chỉ gọi một lần
+                if (gameInstance != null && gameInstance.getMainAppInstance() != null) {
+                    System.out.println("Bomber death animation finished. Showing Game Over screen."); // Debug message
+                    // Gọi phương thức showGameResult của MainApp
+                    gameInstance.getMainAppInstance().showGameResult(uet.oop.bomberman.UI.GameResult.LOSE);
+                    gameOverTriggered = true; // Đặt cờ là true để không gọi lại
+                    gameInstance.stopGame(); // Dừng vòng lặp game chính
+                }
             }
         }
     }

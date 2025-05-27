@@ -15,6 +15,8 @@ public class Flame extends Entity {
     private int frameCount;
     private int frameIndex;
 
+
+
     public Flame(int x, int y, Image img) {
         super(x, y, img);
 

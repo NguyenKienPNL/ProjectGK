@@ -80,6 +80,10 @@ public class BombermanGame extends Application {
         return bomberman;
     }
 
+    public uet.oop.bomberman.UI.MainApp getMainAppInstance() {
+        return mainAppInstance;
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         this.stage = stage;
@@ -132,6 +136,7 @@ public class BombermanGame extends Application {
 
 
         if (bomberman != null) {
+            bomberman.setGameInstance(this);
             bomberman.handleKeyEvent(scene);
             bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
         } else {
@@ -664,5 +669,15 @@ public class BombermanGame extends Application {
                 mainAppInstance.showGameResult(GameResult.LOSE);
             }
         }
+    }
+
+    public static boolean hasFlameAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            // Giả định lớp Flame có phương thức isFinished() để kiểm tra xem flame đã tắt chưa
+            if (e instanceof Flame && e.getX() == tileX && e.getY() == tileY && !((Flame) e).isFinished()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
