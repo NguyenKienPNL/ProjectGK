@@ -37,12 +37,16 @@ public class BombermanGame extends Application {
 
     public int fps = 0;
     public int frames = 0;
+    public static int portalX;
+    public static int portalY;
+
     private long lastTimer;
 
     public static List<Entity> entities = new ArrayList<>();
     public static List<Entity> stillObjects = new ArrayList<>();
 
     private static Bomber bomberman;
+    public static Portal portal;
 
     private AudioClip bombExplosionSound;
     private AudioClip bombPlaceSound;
@@ -491,27 +495,35 @@ public class BombermanGame extends Application {
         int tileTop = realY / Sprite.SCALED_SIZE;
         int tileBottom = (realY + Sprite.SCALED_SIZE - 1) / Sprite.SCALED_SIZE;
 
-        if (hasObstacleAt(tileLeft, tileTop) || hasDestructibleAt(tileLeft, tileTop)) return false;
-        if (hasObstacleAt(tileRight, tileTop) || hasDestructibleAt(tileRight, tileTop)) return false;
-        if (hasObstacleAt(tileLeft, tileBottom) || hasDestructibleAt(tileLeft, tileBottom)) return false;
-        if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)) return false;
-
-        for (Entity e : getEntitiesAt(tileLeft, tileTop)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileRight, tileTop)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileLeft, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileRight, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-
+        if (hasObstacleAt(tileLeft, tileTop) || hasDestructibleAt(tileLeft, tileTop)
+        || hasBlockingBombAt(tileLeft, tileTop)) return false;
+        if (hasObstacleAt(tileRight, tileTop) || hasDestructibleAt(tileRight, tileTop)
+        || hasBlockingBombAt(tileRight, tileTop)) return false;
+        if (hasObstacleAt(tileLeft, tileBottom) || hasDestructibleAt(tileLeft, tileBottom)
+        || hasBlockingBombAt(tileRight, tileTop)) return false;
+        if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)
+        || hasBlockingBombAt(tileRight, tileBottom)) return false;
         return true;
     }
 
+    private static boolean hasBlockingBombAt(int tileX, int tileY) {
+        for (Entity e : getEntitiesAt(tileX, tileY)) {
+            if (e instanceof Bomb) {
+                Bomb b = (Bomb) e;
+                if (!b.isExploded() && !b.isCanWalkThrough()) return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasEnemyAt(int tileX, int tileY) {
+        for (Entity e : getEntitiesAt(tileX, tileY)) {
+            if (e instanceof Enemy && !((Enemy) e).isDead()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private void checkLevelCompletion() {
         if (bomberman == null || levelPortal == null) {

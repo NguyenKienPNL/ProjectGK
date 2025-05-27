@@ -1,6 +1,7 @@
 package uet.oop.bomberman.entities;
 
 import javafx.scene.image.Image;
+import uet.oop.bomberman.graphics.Sprite;
 
 public class Portal extends Entity {
     private boolean isHidden;
@@ -9,8 +10,17 @@ public class Portal extends Entity {
         this.isHidden = true;
     }
 
-    public void update() {
+    public Portal(int x, int y, Image img, boolean isHidden) {
+        super(x, y, img);
+        this.isHidden = isHidden;
+    }
 
+    public void update() {
+        if (isHidden()) {
+            img = null;
+        } else {
+            img = Sprite.portal.getFxImage();
+        }
     }
 
     public boolean isHidden() {

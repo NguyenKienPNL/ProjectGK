@@ -1,5 +1,6 @@
 package uet.oop.bomberman.engine;
 
+import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.entities.*;
 import uet.oop.bomberman.graphics.Sprite;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LevelLoader {
+
     public static class LevelInfo {
         public int level;
         public int rows;
@@ -16,6 +18,8 @@ public class LevelLoader {
         public char[][] map;
         public int timeLeft; // Thời gian còn lại khi save game
         public int score;    // Điểm số khi save game
+        public int portalX;
+        public int portalY;
 
         // Constructor cho Level mới (không có timeLeft, score)
         public LevelInfo(int level, int rows, int cols, char[][] map) {
@@ -94,6 +98,9 @@ public class LevelLoader {
             for (int j = 0; j < levelInfo.cols; j++) {
                 char c = levelInfo.map[i][j];
                 if (c == 'x') {
+                    Portal portal = new Portal(j, i, Sprite.portal.getFxImage(), true);
+                    BombermanGame.portalX = j;
+                    BombermanGame.portalY = i;
                     boolean hasBrickCover = false;
                     if (j + 1 < levelInfo.cols && levelInfo.map[i][j + 1] == '*') {
                         hasBrickCover = true;
@@ -101,10 +108,11 @@ public class LevelLoader {
 
                     if (hasBrickCover) {
                         entities.add(new Brick(j, i, Sprite.brick.getFxImage())); // Brick che
-                        entities.add(new Portal(j, i, Sprite.portal.getFxImage(), true)); // Portal ẩn
-                    } else {
-                        entities.add(new Portal(j, i, Sprite.portal.getFxImage(), false)); // Portal hiện
+                        portal.setHidden(true);
                     }
+
+                    entities.add(portal);
+                    BombermanGame.portal = portal;
                 } else if (c == '*') {
                     // Để đảm bảo không tạo trùng Brick từ "x*"
                     // Chỉ tạo Brick cho '*' nếu ô bên trái của nó không phải là 'x'
@@ -114,6 +122,7 @@ public class LevelLoader {
                 }
             }
         }
+
         return entities;
     }
 

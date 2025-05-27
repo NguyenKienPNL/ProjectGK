@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Bomber extends Entity {
-
-    private final Set<KeyCode> pressedKeys = new HashSet<>();
+    private final int maxAnimate = 30;
+    private final int animateDuration = 10;
     private int currentLevel;
 
     private int bombCount;
@@ -20,6 +20,9 @@ public class Bomber extends Entity {
     private int flameBufftime = 0;
     private int speedBufftime = 0;
     private int bombBufftime = 0;
+    private int animate = 0;
+    private Bomb currentBomb;
+    private boolean isDead = false;
     public static final int BUFF = 200;
 
     // THÊM DÒNG NÀY: Biến lưu trữ điểm số
@@ -55,6 +58,10 @@ public class Bomber extends Entity {
         down_images.add(Sprite.player_down.getFxImage());
         down_images.add(Sprite.player_down_1.getFxImage());
         down_images.add(Sprite.player_down_2.getFxImage());
+
+        dead_images.add(Sprite.player_dead1.getFxImage());
+        dead_images.add(Sprite.player_dead2.getFxImage());
+        dead_images.add(Sprite.player_dead3.getFxImage());
     }
 
     // Getter và setter cho currentLevel
@@ -83,25 +90,37 @@ public class Bomber extends Entity {
 //        this.realY = this.y * Sprite.SCALED_SIZE;
         this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
         this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
-//        het time buff tro ve trang thai ban dau
-        if(speedBufftime > 0) {
-            speedBufftime--;
-            if(speedBufftime == 0) {
-                decreaseSpeed();
-            }
+        if (BombermanGame.hasEnemyAt(x, y)) {
+            destroy();
         }
-
-        if(flameBufftime > 0) {
-            flameBufftime--;
-            if(flameBufftime == 0) {
-                decreaseFlameLength();
+        if (!isDead()) {
+            //        het time buff tro ve trang thai ban dau
+            if(speedBufftime > 0) {
+                speedBufftime--;
+                if(speedBufftime == 0) {
+                    decreaseSpeed();
+                }
             }
-        }
 
-        if(bombBufftime > 0) {
-            bombBufftime--;
-            if(bombBufftime == 0) {
-                decreaseBomb();
+            if(flameBufftime > 0) {
+                flameBufftime--;
+                if(flameBufftime == 0) {
+                    decreaseFlameLength();
+                }
+            }
+
+            if(bombBufftime > 0) {
+                bombBufftime--;
+                if(bombBufftime == 0) {
+                    decreaseBomb();
+                }
+            }
+        } else {
+            animate++;
+            if (animate <= maxAnimate) {
+                img = dead_images.get(animate / animateDuration);
+            } else {
+                // Chuyen giao dien chet
             }
         }
     }
@@ -136,6 +155,15 @@ public class Bomber extends Entity {
                     break;
             }
         });
+    }
+
+    public boolean isDead() {
+        return isDead;
+    }
+
+    public void destroy() {
+        this.isDead = true;
+        this.animate = 0;
     }
 
     public int getBombCount() {
@@ -202,6 +230,7 @@ public class Bomber extends Entity {
         if (bombCount > 0 && BombermanGame.getEntitiesAt(x, y).stream().noneMatch(e -> e instanceof Bomb)) {
             // TRUYỀN CẢ bombExplosionSound VÀ bombTickSound VÀO CONSTRUCTOR CỦA BOMB
             Bomb bomb = new Bomb(x, y, this, bombExplosionSound, bombTickSound);
+            currentBomb = bomb;
             BombermanGame.addEntity(bomb);
             bombCount--;
         }

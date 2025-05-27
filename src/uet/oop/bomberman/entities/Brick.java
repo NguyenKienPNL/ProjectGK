@@ -1,5 +1,6 @@
 package uet.oop.bomberman.entities;
 
+import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.entities.Items.Item;
 import javafx.scene.image.Image;
 
@@ -32,6 +33,13 @@ public class Brick extends Entity {
             } else {
                 img = null;
             }
+        }
+
+        if (destroyed && animate >= maxanimate) {
+            if (x == BombermanGame.portalX && y == BombermanGame.portalY) {
+                BombermanGame.portal.setHidden(false);
+            }
+            BombermanGame.removeEntity(this);
         }
     }
 

@@ -36,9 +36,10 @@ public class FlameSegments extends Entity {
         animate();
 
         if (isFinished()) {
-            BombermanGame.removeEntity(this);
-            bomber.increaseBomb();
             destroy();
+            System.out.println(destroyEntities.size());
+            bomber.increaseBomb();
+            BombermanGame.removeEntity(this);
         }
     }
 
@@ -70,7 +71,7 @@ public class FlameSegments extends Entity {
 
             // Nếu gặp Brick, thêm vào danh sách phá và ngừng luôn
             if (BombermanGame.hasDestructibleAt(curX, curY)) {
-                destroyEntities.add(BombermanGame.getStillObjectAt(curX, curY));
+                destroyEntities.addAll(BombermanGame.getEntitiesAt(curX, curY));
                 break;
             }
 
@@ -129,6 +130,10 @@ public class FlameSegments extends Entity {
 //            entity.loadDead(); // hàm này bạn tự xử lý animation chết
             if (entity instanceof Brick) {
                 ((Brick) entity).destroy();
+            } else if (entity instanceof Bomber) {
+                ((Bomber) entity).destroy();
+            } else {
+                ((Enemy) entity).destroy();
             }
         }
     }
@@ -141,6 +146,4 @@ public class FlameSegments extends Entity {
         }
         return true;
     }
-
-
 }

@@ -37,7 +37,16 @@ public class Oneal extends Enemy {
 
     @Override
     public void update() {
-        move();
+        if (isDead()) {
+            animate++;
+            if (animate <= maxAnimate) {
+                img = Sprite.oneal_dead.getFxImage();
+            } else {
+                BombermanGame.removeEntity(this);
+            }
+        } else {
+            move();
+        }
     }
 
 
