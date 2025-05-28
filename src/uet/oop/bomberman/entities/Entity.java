@@ -175,6 +175,20 @@ public abstract class Entity {
         return moved;
     }
 
+    protected boolean isMoveWithCollision(int dx, int dy) {
+        boolean moved = false;
+        int Rx = getRealX();
+        int Ry = getRealY();
+        for (int i = 0; i < speed; i++) {
+            if (BombermanGame.validatePixelMove(Rx + dx, Ry + dy)) {
+                Rx += dx;
+                Ry += dy;
+                moved = true;
+            } else break;
+        }
+        return moved;
+    }
+
     protected void align(int dx, int dy) {
         if (dx != 0) { // đi ngang → căn trục dọc
             int remainder = realY % Sprite.SCALED_SIZE;
