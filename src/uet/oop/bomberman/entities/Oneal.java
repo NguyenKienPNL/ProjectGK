@@ -63,24 +63,31 @@ public class Oneal extends Enemy {
 //            speed -= 1;
         }
 
-        // cac huong kha di
-        if (isCentered()) {
-            int nextDirection = findDirection();
-            if (nextDirection != -1) {
-                direction = nextDirection;
-            } else {
+        // cac huong kha di (neu gan)
+        if (nearToBomberman()) {
+            if (isCentered()) {
+                int nextDirection = findDirection();
+                if (nextDirection != -1) {
+                    direction = nextDirection;
+                } else {
+                    chooseARandomDirection();
+                }
+            }
+
+            if (!canGo(direction)) {
+                int nextDirection = findDirection();
+                if (nextDirection != -1) {
+                    direction = nextDirection;
+                } else {
+                    chooseARandomDirection();
+                }
+            }
+        } else {
+            if (isCentered() && !canGo(direction)) {
                 chooseARandomDirection();
             }
         }
 
-        if (!canGo(direction)) {
-            int nextDirection = findDirection();
-            if (nextDirection != -1) {
-                direction = nextDirection;
-            } else {
-                chooseARandomDirection();
-            }
-        }
 
         switch (direction) {
             case 0:
