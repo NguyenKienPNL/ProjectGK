@@ -27,8 +27,8 @@ public class FlameSegments extends Entity {
         addDirection(1, 0, 1);  // right
         addDirection(0, -1, 2); // up
         addDirection(0, 1, 3);  // down
-
         BombermanGame.entities.addAll(flames);
+        System.out.println(destroyEntities.size());
         destroy();
     }
 
@@ -72,9 +72,12 @@ public class FlameSegments extends Entity {
             flames.add(new Flame(curX, curY, Sprite.explosion_horizontal2.getFxImage(),
                     isLast, direction, getImages(direction, isLast)));
 
-            // Nếu gặp player/enemy
-            if (BombermanGame.hasPlayerOrEnemyAt(curX, curY)) {
-                destroyEntities.addAll(BombermanGame.getEnemyAndBomberAt(x * Sprite.SCALED_SIZE, y * Sprite.SCALED_SIZE));
+            // Nếu gặp enemy
+            destroyEntities.addAll(BombermanGame.getEnemiesAt(curX, curY));
+
+            //Nếu gặp player
+            if (BombermanGame.hasPlayerAt(curX, curY)) {
+                destroyEntities.add(BombermanGame.getBomberAt(curX, curY));
             }
         }
     }

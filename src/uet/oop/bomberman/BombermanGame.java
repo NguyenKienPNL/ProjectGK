@@ -274,8 +274,7 @@ public class BombermanGame extends Application {
     }
 
     public static boolean validate(int x, int y) {
-        return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 &&
-                !hasObstacleAt(x, y) && !hasDestructibleAt(x, y));
+        return (!hasObstacleAt(x, y) && !hasDestructibleAt(x, y) && !hasBlockingBombAt(x, y));
     }
 
     public static boolean hasPlayerOrEnemyAt(int x, int y) {
@@ -289,6 +288,23 @@ public class BombermanGame extends Application {
         return false;
     }
 
+    public static boolean hasPlayerAt(int x, int y) {
+        for (Entity e : entities) {
+            if (e instanceof Bomber && e.getX() == x && e.getY() == y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Entity getBomberAt(int x, int y) {
+        for (Entity e : entities) {
+            if (e instanceof Bomber && e.getX() == x && e.getY() == y) {
+                return e;
+            }
+        }
+        return null;
+    }
     public static List<Entity> getEntitiesAt(int x, int y) {
         List<Entity> result = new ArrayList<>();
         for (Entity e : entities) {
@@ -307,13 +323,16 @@ public class BombermanGame extends Application {
         }
         return null;
     }
+    public static boolean inRadius(int x1, int y1, int x2, int y2) {
+        return (Math.abs(x1 - x2) <= Sprite.DEFAULT_SIZE && Math.abs(y1 - y2) <= Sprite.DEFAULT_SIZE);
+    }
 
-    public static List<Entity> getEnemyAndBomberAt(int x, int y) {
+    public static List<Entity> getEnemiesAt(int x, int y) {
         int realX = x * Sprite.SCALED_SIZE;
         int realY = y * Sprite.SCALED_SIZE;
         List<Entity> result = new ArrayList<>();
         for (Entity e : entities) {
-            if (nearTo(realX, realY, e.getRealX(), e.getRealY()) && (e instanceof Enemy || e instanceof Bomber)) {
+            if (inRadius(realX, realY, e.getRealX(), e.getRealY()) && e instanceof Enemy) {
                 result.add(e);
             }
         }
@@ -526,7 +545,7 @@ public class BombermanGame extends Application {
         return true;
     }
 
-    private static boolean hasBlockingBombAt(int tileX, int tileY) {
+    public static boolean hasBlockingBombAt(int tileX, int tileY) {
         for (Entity e : getEntitiesAt(tileX, tileY)) {
             if (e instanceof Bomb) {
                 Bomb b = (Bomb) e;

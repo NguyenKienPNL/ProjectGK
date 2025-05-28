@@ -33,7 +33,7 @@ public class Bomber extends Entity {
     private AudioClip bombTickSound;
 
     private BombermanGame gameInstance;
-    private boolean gameOverTriggered = false;
+    private boolean gameOverTriggered;
 
     public void setGameInstance(BombermanGame gameInstance) {
         this.gameInstance = gameInstance;
@@ -46,7 +46,7 @@ public class Bomber extends Entity {
         this.currentLevel = 1;
         this.bombCount = 1;
         this.score = 0; // THÊM DÒNG NÀY: Khởi tạo điểm số khi tạo Bomber
-
+        this.gameOverTriggered = false;
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());

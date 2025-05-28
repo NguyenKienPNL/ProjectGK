@@ -30,7 +30,7 @@ public class Oneal extends Enemy {
 
         this.speed = 1;
         this.radius = 10 * Sprite.SCALED_SIZE;
-        this.direction = rand.nextInt(4);
+        this.direction = 0;
         this.sprinted = false;
         point = 20;
 //        map = BombermanGame.map;
@@ -38,6 +38,7 @@ public class Oneal extends Enemy {
 
     @Override
     public void update() {
+//        if (BombermanGame.nearTo(realX, realY))
         if (isDead()) {
             animate++;
             if (animate <= maxAnimate) {
@@ -56,17 +57,18 @@ public class Oneal extends Enemy {
         //cap nhat toc do
         if (!sprinted && nearToBomberman()) {
             sprinted = true;
-            speed += 1;
+//            speed += 1;
         }
 
         if (sprinted && !nearToBomberman()) {
             sprinted = false;
-            speed -= 1;
+//            speed -= 1;
         }
 
         // cac huong kha di
         if (isCentered()) {
-            chooseARandomDirection();
+            boolean canGo = canGo();
+            if (!canGo) chooseARandomDirection();
         }
 
         switch (direction) {
@@ -119,14 +121,37 @@ public class Oneal extends Enemy {
         direction = possibleDirections.get(rand.nextInt(possibleDirections.size()));
     }
 
-    public void chooseDirection() {
+   public boolean canGo() {
+        int dx, dy;
         int tileX = getXFromRealX(realX);
         int tileY = getYFromRealY(realY);
-        int targetX = BombermanGame.getBomberman().getX();
-        int targetY = BombermanGame.getBomberman().getY();
+        switch (direction) {
+            case 0:
+                dx = -1;
+                dy = 0;
+                break;
+            case 1:
+                dx = 1;
+                dy = 0;
+                break;
+            case 2:
+                dx = 0;
+                dy = -1;
+                break;
+            default:
+                dx = 0;
+                dy = 1;
+                break;
+        }
 
+//        if (BombermanGame.hasObstacleAt(tileX + dx, tileY + dy)
+//        || BombermanGame.hasDestructibleAt(tileX + dx, tileY + dy)
+//        || BombermanGame.hasBlockingBombAt(tileX + dx, tileY + dy)) return false;
+//        return true;
+       if (!moveWithCollision(dx, dy)) return false;
+       return true;
+   }
 
-    }
     int distance() {
         return (int) (Math.pow(BombermanGame.getBomberman().getRealX() - realX, 2)
                  + Math.pow(BombermanGame.getBomberman().getRealY() - realY, 2));

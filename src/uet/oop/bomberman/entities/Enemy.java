@@ -1,6 +1,9 @@
 package uet.oop.bomberman.entities;
 
 import javafx.scene.image.Image;
+import uet.oop.bomberman.BombermanGame;
+
+import java.util.List;
 
 public abstract class Enemy extends Entity {
     protected int animate;
@@ -25,5 +28,15 @@ public abstract class Enemy extends Entity {
 
     public int getPoint() {
         return point;
+    }
+
+    public boolean closeToBomb() {
+        List<Entity> entityList = BombermanGame.entities;
+        for (Entity entity : entityList) {
+            if (entity instanceof Bomb && BombermanGame.nearTo(realX, realY, entity.getRealX(), entity.getRealY())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

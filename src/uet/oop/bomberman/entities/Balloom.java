@@ -25,6 +25,8 @@ public class Balloom extends Enemy{
     public void update() {
         this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
         this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
+
+        if (closeToBomb()) destroy();
         if (isDead()) {
             animate++;
             if (animate <= maxAnimate) {
