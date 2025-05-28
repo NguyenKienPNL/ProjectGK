@@ -70,6 +70,10 @@ public class BombermanGame extends Application {
         this.stage = primaryStage;
     }
 
+    public void setInfoBar(InfoBar infoBar) {
+        this.infoBar = infoBar;
+    }
+
     public BombermanGame(Stage stage) {
         this.stage = stage;
     }
@@ -94,8 +98,15 @@ public class BombermanGame extends Application {
 
         BorderPane root = new BorderPane();
 
-        infoBar = new InfoBar();
-        root.setTop(infoBar);
+
+        if (this.infoBar != null) { // Đảm bảo InfoBar đã được truyền vào
+            root.setTop(this.infoBar);
+        } else {
+            // Xử lý trường hợp InfoBar chưa được set, có thể tạo mới hoặc báo lỗi
+            System.err.println("Warning: InfoBar was not set by MainApp. Creating a default one.");
+            this.infoBar = new InfoBar();
+            root.setTop(this.infoBar);
+        }
         root.setCenter(canvas);
 
         Scene scene = new Scene(root);
@@ -140,6 +151,7 @@ public class BombermanGame extends Application {
             bomberman.setGameInstance(this);
             bomberman.handleKeyEvent(scene);
             bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
+            bomberman.setCurrentLevel(this.currentLevel);
         } else {
             System.err.println("Warning: Bomber object not found in entities after map creation.");
         }
@@ -177,6 +189,10 @@ public class BombermanGame extends Application {
                             gameOver(null);
                         }
                     }
+                }
+                if (infoBar != null) { // Kiểm tra infoBar đã được set chưa
+                    infoBar.setScore(bomberman.getScore());
+                    infoBar.setLevel(BombermanGame.this.currentLevel); // THAY ĐỔI TẠI ĐÂY
                 }
             }
         };
@@ -230,7 +246,7 @@ public class BombermanGame extends Application {
 
         if (bomberman != null) {
             infoBar.setScore(bomberman.getScore());
-            infoBar.setLevel(this.currentLevel);
+            infoBar.setLevel(BombermanGame.this.currentLevel);
         }
         checkLevelCompletion(); // Gọi phương thức kiểm tra qua màn
     }
@@ -356,6 +372,9 @@ public class BombermanGame extends Application {
             LevelLoader levelLoader = new LevelLoader();
             LevelLoader.LevelInfo levelInfo = levelLoader.loadSavedLevel("res/savegame.txt");
 
+            //this.currentLevel = levelInfo.level;
+            this.currentLevel = levelInfo.level;
+            
             map = levelInfo.map;
             stillObjects = levelLoader.loadStillObjects(levelInfo);
             List<Entity> loadedEntities = levelLoader.loadEntities(levelInfo);
@@ -370,6 +389,7 @@ public class BombermanGame extends Application {
                 if (bomberman != null) {
                     infoBar.setScore(bomberman.getScore());
                     infoBar.setLevel(this.currentLevel);
+                    bomberman.setCurrentLevel(this.currentLevel);
                 }
             }
 
@@ -410,7 +430,8 @@ public class BombermanGame extends Application {
                     }
                     if (bomberman != null) {
                         infoBar.setScore(bomberman.getScore());
-                        infoBar.setLevel(bomberman.getCurrentLevel());
+                        infoBar.setLevel(BombermanGame.this.currentLevel);
+
                     }
                 }
             };
@@ -655,6 +676,7 @@ public class BombermanGame extends Application {
                 Scene currentScene = stage.getScene();
                 bomberman.handleKeyEvent(currentScene);
                 bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
+                bomberman.setCurrentLevel(this.currentLevel);
                 infoBar.setLevel(currentLevel);
             } else {
                 System.err.println("Warning: Bomber object not found after loading new level.");
