@@ -59,6 +59,7 @@ public class Bomb extends Entity {
             if (countdown <= 0) {
                 exploded();
                 BombermanGame.removeEntity(this);
+                BombermanGame.map[y][x] = ' ';
                 owner.increaseBomb();
             }
         } else {

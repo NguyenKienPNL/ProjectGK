@@ -42,7 +42,7 @@ public class ItemDistribute extends Entity {
         List<Entity> objects = BombermanGame.getStillObjects();
         for (int i = 0; i < objects.size(); i++) {
             if (!BombermanGame.hasPlayerOrEnemyAt(objects.get(i).getX(), objects.get(i).getY())
-            && !(objects.get(i) instanceof Wall)) {
+            && !(objects.get(i) instanceof Wall) && !BombermanGame.hasDestructibleAt(objects.get(i).getX(), objects.get(i).getY())) {
                 points.add(new Point(objects.get(i).getX(), objects.get(i).getY()));
             }
         }

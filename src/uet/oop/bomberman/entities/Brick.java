@@ -32,6 +32,7 @@ public class Brick extends Entity {
             if (x == BombermanGame.portalX && y == BombermanGame.portalY) {
                 BombermanGame.portal.setHidden(false);
             }
+            BombermanGame.map[y][x] = ' ';
             BombermanGame.removeEntity(this);
         }
     }

@@ -261,6 +261,7 @@ public class Bomber extends Entity {
             Bomb bomb = new Bomb(x, y, this, bombExplosionSound, bombTickSound);
             currentBomb = bomb;
             BombermanGame.addEntity(bomb);
+            BombermanGame.map[y][x] = 'b';
             bombCount--;
         }
     }
