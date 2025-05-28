@@ -1,7 +1,6 @@
 package uet.oop.bomberman.entities;
 
 import uet.oop.bomberman.BombermanGame;
-import uet.oop.bomberman.entities.Items.Item;
 import javafx.scene.image.Image;
 
 public class Brick extends Entity {

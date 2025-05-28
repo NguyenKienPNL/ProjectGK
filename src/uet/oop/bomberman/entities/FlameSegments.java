@@ -63,7 +63,7 @@ public class FlameSegments extends Entity {
 
             // Nếu gặp Brick, thêm vào danh sách phá và ngừng luôn
             if (BombermanGame.hasDestructibleAt(curX, curY)) {
-                destroyEntities.addAll(BombermanGame.getEntitiesAt(curX, curY));
+                destroyEntities.add(BombermanGame.getEntityAt(curX, curY));
                 break;
             }
 
@@ -74,7 +74,7 @@ public class FlameSegments extends Entity {
 
             // Nếu gặp player/enemy
             if (BombermanGame.hasPlayerOrEnemyAt(curX, curY)) {
-                destroyEntities.addAll(BombermanGame.getEntitiesAt(curX, curY));
+                destroyEntities.addAll(BombermanGame.getEnemyAndBomberAt(x * Sprite.SCALED_SIZE, y * Sprite.SCALED_SIZE));
             }
         }
     }

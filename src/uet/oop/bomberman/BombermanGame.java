@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 import uet.oop.bomberman.UI.GameResultScreen;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
-import uet.oop.bomberman.entities.Items.Item;
+import uet.oop.bomberman.entities.Item;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.UI.MainApp;
 import uet.oop.bomberman.UI.InfoBar;
@@ -279,16 +279,28 @@ public class BombermanGame extends Application {
     }
 
     public static boolean hasPlayerOrEnemyAt(int x, int y) {
+        int realX = x * Sprite.SCALED_SIZE;
+        int realY = y * Sprite.SCALED_SIZE;
         for (Entity e : entities) {
-            if ((e instanceof Bomber || e instanceof Enemy) && x == e.getX() && e.getY() == y) {
+            if ((e instanceof Bomber || e instanceof Enemy) && nearTo(realX, realY, e.getRealX(), e.getRealY())) {
                 return true;
             }
         }
         return false;
     }
 
-    public static Entity getStillObjectAt(int x, int y) {
-        for (Entity e : stillObjects) {
+    public static List<Entity> getEntitiesAt(int x, int y) {
+        List<Entity> result = new ArrayList<>();
+        for (Entity e : entities) {
+            if (x == e.getX() && y == e.getY()) {
+                result.add(e);
+            }
+        }
+        return result;
+    }
+
+    public static Entity getEntityAt(int x, int y) {
+        for (Entity e : entities) {
             if (e.getX() == x && e.getY() == y) {
                 return e;
             }
@@ -296,10 +308,12 @@ public class BombermanGame extends Application {
         return null;
     }
 
-    public static List<Entity> getEntitiesAt(int x, int y) {
+    public static List<Entity> getEnemyAndBomberAt(int x, int y) {
+        int realX = x * Sprite.SCALED_SIZE;
+        int realY = y * Sprite.SCALED_SIZE;
         List<Entity> result = new ArrayList<>();
         for (Entity e : entities) {
-            if (e.getX() == x && e.getY() == y) {
+            if (nearTo(realX, realY, e.getRealX(), e.getRealY()) && (e instanceof Enemy || e instanceof Bomber)) {
                 result.add(e);
             }
         }
@@ -506,7 +520,7 @@ public class BombermanGame extends Application {
         if (hasObstacleAt(tileRight, tileTop) || hasDestructibleAt(tileRight, tileTop)
         || hasBlockingBombAt(tileRight, tileTop)) return false;
         if (hasObstacleAt(tileLeft, tileBottom) || hasDestructibleAt(tileLeft, tileBottom)
-        || hasBlockingBombAt(tileRight, tileTop)) return false;
+        || hasBlockingBombAt(tileLeft, tileBottom)) return false;
         if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)
         || hasBlockingBombAt(tileRight, tileBottom)) return false;
         return true;
@@ -522,9 +536,13 @@ public class BombermanGame extends Application {
         return false;
     }
 
-    public static boolean hasEnemyAt(int tileX, int tileY) {
-        for (Entity e : getEntitiesAt(tileX, tileY)) {
-            if (e instanceof Enemy && !((Enemy) e).isDead()) {
+    public static boolean nearTo(int x1, int y1, int x2, int y2) {
+        return (Math.abs(x1 - x2) <= Sprite.SCALED_SIZE && Math.abs(y1 - y2) <= Sprite.SCALED_SIZE);
+    }
+
+    public static boolean hasEnemyAt(int realX, int realY) {
+        for (Entity e : entities) {
+            if (e instanceof Enemy && !((Enemy) e).isDead() && nearTo(realX, realY, e.getRealX(), e.getRealY())) {
                 return true;
             }
         }

@@ -28,7 +28,7 @@ public class Oneal extends Enemy {
         this.right_images.add(Sprite.oneal_right2.getFxImage());
         this.right_images.add(Sprite.oneal_right3.getFxImage());
 
-        this.speed = 2;
+        this.speed = 1;
         this.radius = 10 * Sprite.SCALED_SIZE;
         this.direction = rand.nextInt(4);
         this.sprinted = false;

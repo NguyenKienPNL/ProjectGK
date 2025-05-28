@@ -2,13 +2,8 @@ package uet.oop.bomberman.entities;
 
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.media.AudioClip;
 import uet.oop.bomberman.BombermanGame;
-import uet.oop.bomberman.UI.GameResult;
-import uet.oop.bomberman.UI.GameResultScreen;
-import uet.oop.bomberman.entities.Items.BombItem;
-import uet.oop.bomberman.entities.Items.Item;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.HashSet;
@@ -47,7 +42,7 @@ public class Bomber extends Entity {
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
         this.speed = 8;
-        this.bombRadius = 4;
+        this.bombRadius = 2;
         this.currentLevel = 1;
         this.bombCount = 1;
         this.score = 0; // THÊM DÒNG NÀY: Khởi tạo điểm số khi tạo Bomber
@@ -100,7 +95,7 @@ public class Bomber extends Entity {
 //        this.realY = this.y * Sprite.SCALED_SIZE;
         this.x = Math.round((float)this.realX / Sprite.SCALED_SIZE);
         this.y = Math.round((float)this.realY / Sprite.SCALED_SIZE);
-        if (!isDead() && (BombermanGame.hasEnemyAt(x, y) || BombermanGame.hasFlameAt(x, y))) {
+        if (!isDead() && (BombermanGame.hasEnemyAt(realX, realY) || BombermanGame.hasFlameAt(x, y))) {
             System.out.println("Bomber va chạm với kẻ thù hoặc ngọn lửa! Bắt đầu chết.");
             destroy(); // Bắt đầu quá trình chết
         }
