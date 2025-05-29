@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import uet.oop.bomberman.UI.GameResultScreen;
 import uet.oop.bomberman.engine.LevelLoader;
 import uet.oop.bomberman.entities.*;
+import uet.oop.bomberman.entities.Item;
 import uet.oop.bomberman.graphics.Sprite;
 import uet.oop.bomberman.UI.MainApp;
 import uet.oop.bomberman.UI.InfoBar;
@@ -29,7 +30,7 @@ public class BombermanGame extends Application {
     public static final int WIDTH = 30;
     public static final int HEIGHT = 15;
 
-    public char[][] map;
+    public static char[][] map;
 
     private GraphicsContext gc;
     private Canvas canvas;
@@ -37,12 +38,16 @@ public class BombermanGame extends Application {
 
     public int fps = 0;
     public int frames = 0;
+    public static int portalX;
+    public static int portalY;
+
     private long lastTimer;
 
     public static List<Entity> entities = new ArrayList<>();
     public static List<Entity> stillObjects = new ArrayList<>();
 
     private static Bomber bomberman;
+    public static Portal portal;
 
     private AudioClip bombExplosionSound;
     private AudioClip bombPlaceSound;
@@ -56,13 +61,17 @@ public class BombermanGame extends Application {
 
     private static Portal levelPortal;
 
-    private final int GAME_DURATION_SECONDS = 25;
+    private final int GAME_DURATION_SECONDS = 200;
     private int remainingTime = GAME_DURATION_SECONDS;
     private MainApp mainAppInstance;
 
     public BombermanGame(MainApp mainApp, Stage primaryStage) {
         this.mainAppInstance = mainApp;
         this.stage = primaryStage;
+    }
+
+    public void setInfoBar(InfoBar infoBar) {
+        this.infoBar = infoBar;
     }
 
     public BombermanGame(Stage stage) {
@@ -76,6 +85,10 @@ public class BombermanGame extends Application {
         return bomberman;
     }
 
+    public uet.oop.bomberman.UI.MainApp getMainAppInstance() {
+        return mainAppInstance;
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         this.stage = stage;
@@ -85,8 +98,15 @@ public class BombermanGame extends Application {
 
         BorderPane root = new BorderPane();
 
-        infoBar = new InfoBar();
-        root.setTop(infoBar);
+
+        if (this.infoBar != null) { // Đảm bảo InfoBar đã được truyền vào
+            root.setTop(this.infoBar);
+        } else {
+            // Xử lý trường hợp InfoBar chưa được set, có thể tạo mới hoặc báo lỗi
+            System.err.println("Warning: InfoBar was not set by MainApp. Creating a default one.");
+            this.infoBar = new InfoBar();
+            root.setTop(this.infoBar);
+        }
         root.setCenter(canvas);
 
         Scene scene = new Scene(root);
@@ -128,8 +148,10 @@ public class BombermanGame extends Application {
 
 
         if (bomberman != null) {
+            bomberman.setGameInstance(this);
             bomberman.handleKeyEvent(scene);
             bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
+            bomberman.setCurrentLevel(this.currentLevel);
         } else {
             System.err.println("Warning: Bomber object not found in entities after map creation.");
         }
@@ -167,6 +189,10 @@ public class BombermanGame extends Application {
                             gameOver(null);
                         }
                     }
+                }
+                if (infoBar != null) { // Kiểm tra infoBar đã được set chưa
+                    infoBar.setScore(bomberman.getScore());
+                    infoBar.setLevel(BombermanGame.this.currentLevel); // THAY ĐỔI TẠI ĐÂY
                 }
             }
         };
@@ -220,7 +246,7 @@ public class BombermanGame extends Application {
 
         if (bomberman != null) {
             infoBar.setScore(bomberman.getScore());
-            infoBar.setLevel(this.currentLevel);
+            infoBar.setLevel(BombermanGame.this.currentLevel);
         }
         checkLevelCompletion(); // Gọi phương thức kiểm tra qua màn
     }
@@ -264,32 +290,65 @@ public class BombermanGame extends Application {
     }
 
     public static boolean validate(int x, int y) {
-        return (1 <= x && x < WIDTH - 1 && 1 <= y && y < HEIGHT - 1 &&
-                !hasObstacleAt(x, y) && !hasDestructibleAt(x, y));
+        return (!hasObstacleAt(x, y) && !hasDestructibleAt(x, y) && !hasBlockingBombAt(x, y));
     }
 
     public static boolean hasPlayerOrEnemyAt(int x, int y) {
+        int realX = x * Sprite.SCALED_SIZE;
+        int realY = y * Sprite.SCALED_SIZE;
         for (Entity e : entities) {
-            if ((e instanceof Bomber || e instanceof Enemy) && x == e.getX() && e.getY() == y) {
+            if ((e instanceof Bomber || e instanceof Enemy) && nearTo(realX, realY, e.getRealX(), e.getRealY())) {
                 return true;
             }
         }
         return false;
     }
 
-    public static Entity getStillObjectAt(int x, int y) {
-        for (Entity e : stillObjects) {
+    public static boolean hasPlayerAt(int x, int y) {
+        for (Entity e : entities) {
+            if (e instanceof Bomber && e.getX() == x && e.getY() == y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Entity getBomberAt(int x, int y) {
+        for (Entity e : entities) {
+            if (e instanceof Bomber && e.getX() == x && e.getY() == y) {
+                return e;
+            }
+        }
+        return null;
+    }
+    public static List<Entity> getEntitiesAt(int x, int y) {
+        List<Entity> result = new ArrayList<>();
+        for (Entity e : entities) {
+            if (x == e.getX() && y == e.getY()) {
+                result.add(e);
+            }
+        }
+        return result;
+    }
+
+    public static Entity getEntityAt(int x, int y) {
+        for (Entity e : entities) {
             if (e.getX() == x && e.getY() == y) {
                 return e;
             }
         }
         return null;
     }
+    public static boolean inRadius(int x1, int y1, int x2, int y2) {
+        return (Math.abs(x1 - x2) <= Sprite.DEFAULT_SIZE && Math.abs(y1 - y2) <= Sprite.DEFAULT_SIZE);
+    }
 
-    public static List<Entity> getEntitiesAt(int x, int y) {
+    public static List<Entity> getEnemiesAt(int x, int y) {
+        int realX = x * Sprite.SCALED_SIZE;
+        int realY = y * Sprite.SCALED_SIZE;
         List<Entity> result = new ArrayList<>();
         for (Entity e : entities) {
-            if (e.getX() == x && e.getY() == y) {
+            if (inRadius(realX, realY, e.getRealX(), e.getRealY()) && e instanceof Enemy) {
                 result.add(e);
             }
         }
@@ -313,6 +372,9 @@ public class BombermanGame extends Application {
             LevelLoader levelLoader = new LevelLoader();
             LevelLoader.LevelInfo levelInfo = levelLoader.loadSavedLevel("res/savegame.txt");
 
+            //this.currentLevel = levelInfo.level;
+            this.currentLevel = levelInfo.level;
+            
             map = levelInfo.map;
             stillObjects = levelLoader.loadStillObjects(levelInfo);
             List<Entity> loadedEntities = levelLoader.loadEntities(levelInfo);
@@ -327,6 +389,7 @@ public class BombermanGame extends Application {
                 if (bomberman != null) {
                     infoBar.setScore(bomberman.getScore());
                     infoBar.setLevel(this.currentLevel);
+                    bomberman.setCurrentLevel(this.currentLevel);
                 }
             }
 
@@ -367,7 +430,8 @@ public class BombermanGame extends Application {
                     }
                     if (bomberman != null) {
                         infoBar.setScore(bomberman.getScore());
-                        infoBar.setLevel(bomberman.getCurrentLevel());
+                        infoBar.setLevel(BombermanGame.this.currentLevel);
+
                     }
                 }
             };
@@ -491,27 +555,39 @@ public class BombermanGame extends Application {
         int tileTop = realY / Sprite.SCALED_SIZE;
         int tileBottom = (realY + Sprite.SCALED_SIZE - 1) / Sprite.SCALED_SIZE;
 
-        if (hasObstacleAt(tileLeft, tileTop) || hasDestructibleAt(tileLeft, tileTop)) return false;
-        if (hasObstacleAt(tileRight, tileTop) || hasDestructibleAt(tileRight, tileTop)) return false;
-        if (hasObstacleAt(tileLeft, tileBottom) || hasDestructibleAt(tileLeft, tileBottom)) return false;
-        if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)) return false;
-
-        for (Entity e : getEntitiesAt(tileLeft, tileTop)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileRight, tileTop)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileLeft, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-        for (Entity e : getEntitiesAt(tileRight, tileBottom)) {
-            if (e instanceof Bomb && !((Bomb) e).isExploded()) return false;
-        }
-
+        if (hasObstacleAt(tileLeft, tileTop) || hasDestructibleAt(tileLeft, tileTop)
+        || hasBlockingBombAt(tileLeft, tileTop)) return false;
+        if (hasObstacleAt(tileRight, tileTop) || hasDestructibleAt(tileRight, tileTop)
+        || hasBlockingBombAt(tileRight, tileTop)) return false;
+        if (hasObstacleAt(tileLeft, tileBottom) || hasDestructibleAt(tileLeft, tileBottom)
+        || hasBlockingBombAt(tileLeft, tileBottom)) return false;
+        if (hasObstacleAt(tileRight, tileBottom) || hasDestructibleAt(tileRight, tileBottom)
+        || hasBlockingBombAt(tileRight, tileBottom)) return false;
         return true;
     }
 
+    public static boolean hasBlockingBombAt(int tileX, int tileY) {
+        for (Entity e : getEntitiesAt(tileX, tileY)) {
+            if (e instanceof Bomb) {
+                Bomb b = (Bomb) e;
+                if (!b.isExploded() && !b.isCanWalkThrough()) return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean nearTo(int x1, int y1, int x2, int y2) {
+        return (Math.abs(x1 - x2) <= Sprite.SCALED_SIZE && Math.abs(y1 - y2) <= Sprite.SCALED_SIZE);
+    }
+
+    public static boolean hasEnemyAt(int realX, int realY) {
+        for (Entity e : entities) {
+            if (e instanceof Enemy && !((Enemy) e).isDead() && nearTo(realX, realY, e.getRealX(), e.getRealY())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private void checkLevelCompletion() {
         if (bomberman == null || levelPortal == null) {
@@ -600,6 +676,7 @@ public class BombermanGame extends Application {
                 Scene currentScene = stage.getScene();
                 bomberman.handleKeyEvent(currentScene);
                 bomberman.setBombSounds(bombPlaceSound, bombExplosionSound);
+                bomberman.setCurrentLevel(this.currentLevel);
                 infoBar.setLevel(currentLevel);
             } else {
                 System.err.println("Warning: Bomber object not found after loading new level.");
@@ -652,5 +729,40 @@ public class BombermanGame extends Application {
                 mainAppInstance.showGameResult(GameResult.LOSE);
             }
         }
+    }
+
+    public static boolean hasFlameAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            // Giả định lớp Flame có phương thức isFinished() để kiểm tra xem flame đã tắt chưa
+            if (e instanceof Flame && e.getX() == tileX && e.getY() == tileY && !((Flame) e).isFinished()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasItemAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            if (e instanceof Item && e.getX() == tileX && e.getY() == tileY) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static Item itemAt(int tileX, int tileY) {
+        for (Entity e : entities) {
+            if (e instanceof Item && e.getX() == tileX && e.getY() == tileY) {
+                return (Item) e;
+            }
+        }
+        return null;
+    }
+
+    public List<Entity> getEntities() {
+        return entities;
+    }
+
+    public static List<Entity> getStillObjects() {
+        return stillObjects;
     }
 }

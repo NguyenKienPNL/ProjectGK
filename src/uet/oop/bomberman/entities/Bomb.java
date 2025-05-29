@@ -12,6 +12,7 @@ public class Bomb extends Entity {
     private int countdown = TIME_TO_EXPLORE;
     private Bomber owner;
     private boolean exploded = false;
+    private boolean canWalkThrough = true;
     private FlameSegments flameSegments;
     private List<Image> bombAnimation = new ArrayList<>();
 
@@ -48,12 +49,17 @@ public class Bomb extends Entity {
 
     @Override
     public void update() {
+        if (Math.abs(owner.getRealX() - realX) >= Sprite.SCALED_SIZE
+                || Math.abs(owner.getRealY() - realY) >= Sprite.SCALED_SIZE) {
+            setCanWalkThrough(false);
+        }
         if(!exploded) {
             countdown--;
             animate();
             if (countdown <= 0) {
                 exploded();
                 BombermanGame.removeEntity(this);
+                BombermanGame.map[y][x] = ' ';
                 owner.increaseBomb();
             }
         } else {
@@ -88,7 +94,7 @@ public class Bomb extends Entity {
         }
 
         flameSegments = new FlameSegments(x, y, owner);
-        // owner.decreaseBomb(); // Dòng này có vẻ dư hoặc sai logic
+
         BombermanGame.addEntity(flameSegments);
     }
 
@@ -98,5 +104,13 @@ public class Bomb extends Entity {
 
     public Bomber getOwner() {
         return owner;
+    }
+
+    public boolean isCanWalkThrough() {
+        return canWalkThrough;
+    }
+
+    public void setCanWalkThrough(boolean canWalkThrough) {
+        this.canWalkThrough = canWalkThrough;
     }
 }

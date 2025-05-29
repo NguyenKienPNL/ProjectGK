@@ -1,6 +1,6 @@
 package uet.oop.bomberman.entities;
 
-import uet.oop.bomberman.entities.Items.Item;
+import uet.oop.bomberman.BombermanGame;
 import javafx.scene.image.Image;
 
 public class Brick extends Entity {
@@ -8,12 +8,12 @@ public class Brick extends Entity {
     private int animate = 0;
 //    thoi gian gach co hieu ung no
     private static final int maxanimate = 30;
-
+    private static final int animateDuration = 10;
 //    them hieu ung no
     private Image[] explosionFrames = new Image[] {
             new Image("sprites/brick_exploded.png"),
              new Image("sprites/brick_exploded1.png"),
-              new Image("sprites/brick_exploded.png")
+              new Image("sprites/brick_exploded2.png")
     };
 
     public Brick(int x, int y, Image img) {
@@ -23,15 +23,17 @@ public class Brick extends Entity {
     @Override
     public void update() {
 //        khi gach no
-        if(destroyed && animate < maxanimate) {
+        if(destroyed && animate <= maxanimate) {
             animate++;
-            int frame = animate / 10;
-//            hieu ung no
-            if(frame < explosionFrames.length) {
-                img = explosionFrames[frame];
-            } else {
-                img = null;
+            img = explosionFrames[(animate / animateDuration) % 3];
+        }
+
+        if (destroyed && animate >= maxanimate) {
+            if (x == BombermanGame.portalX && y == BombermanGame.portalY) {
+                BombermanGame.portal.setHidden(false);
             }
+            BombermanGame.map[y][x] = ' ';
+            BombermanGame.removeEntity(this);
         }
     }
 
@@ -45,6 +47,5 @@ public class Brick extends Entity {
         destroyed = true;
         animate = 0;
     }
-
 
 }

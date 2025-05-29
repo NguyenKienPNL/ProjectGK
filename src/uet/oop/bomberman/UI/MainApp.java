@@ -12,12 +12,13 @@ import java.io.File;
 // Import các lớp cần thiết cho Media
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-
+import javafx.scene.layout.BorderPane;
 
 public class MainApp extends Application {
 
     private Stage primaryStage;
     private BombermanGame currentRunningGame; // Biến để giữ instance của game đang chạy
+    private InfoBar infoBar;
 
     // MediaPlayer chung cho nhạc nền (Menu, Game Play)
     private MediaPlayer backgroundMusicPlayer;
@@ -130,7 +131,9 @@ public class MainApp extends Application {
         stopSoundEffect(); // Đảm bảo dừng nhạc win/lose nếu có
         playBackgroundMusic("res/sounds/game_music.mp3"); // Đường dẫn đến nhạc game
 
+        infoBar = new InfoBar();
         currentRunningGame = new BombermanGame(this, primaryStage);
+        currentRunningGame.setInfoBar(infoBar);
         try {
             currentRunningGame.start(primaryStage);
 //            currentRunningGame.createMap();
@@ -155,7 +158,9 @@ public class MainApp extends Application {
         stopSoundEffect(); // Đảm bảo dừng nhạc win/lose nếu có
         playBackgroundMusic("res/sounds/game_music.mp3"); // Đường dẫn đến nhạc game
 
+        infoBar = new InfoBar();
         currentRunningGame = new BombermanGame(this, primaryStage);
+        currentRunningGame.setInfoBar(infoBar);
         try {
             currentRunningGame.start(primaryStage);
             currentRunningGame.continueGame();

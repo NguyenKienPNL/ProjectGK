@@ -3,21 +3,17 @@ package uet.oop.bomberman.entities;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.media.AudioClip;
 import uet.oop.bomberman.BombermanGame;
 import uet.oop.bomberman.graphics.Sprite;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static uet.oop.bomberman.BombermanGame.validatePixelMove;
 
 public class Bomber extends Entity {
 
-
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     private int currentLevel;
-
 
     private int bombCount;
     private int bombRadius;
@@ -25,7 +21,15 @@ public class Bomber extends Entity {
     private int speedBufftime = 0;
     private int bombBufftime = 0;
     public static final int BUFF = 200;
-//    thoi gian duoc nhan buff
+
+    // THÊM DÒNG NÀY: Biến lưu trữ điểm số
+    private int score;
+
+    // Biến AudioClip để lưu trữ âm thanh bom nổ
+    private AudioClip bombExplosionSound;
+    // THÊM biến AudioClip để lưu trữ âm thanh tick khi đặt bom
+    private AudioClip bombTickSound;
+
 
     public Bomber(int x, int y, Image img) {
         super(x, y, img);
@@ -33,6 +37,7 @@ public class Bomber extends Entity {
         this.bombRadius = 4;
         this.currentLevel = 1;
         this.bombCount = 1;
+        this.score = 0; // THÊM DÒNG NÀY: Khởi tạo điểm số khi tạo Bomber
 
         // Load sprite animations
         left_images.add(Sprite.player_left.getFxImage());
@@ -60,6 +65,17 @@ public class Bomber extends Entity {
     public void setCurrentLevel(int currentLevel) {
         this.currentLevel = currentLevel;
     }
+
+    // THÊM DÒNG NÀY: Phương thức để lấy điểm số
+    public int getScore() {
+        return score;
+    }
+
+    // THÊM DÒNG NÀY: Phương thức để tăng điểm số
+    public void addScore(int points) {
+        this.score += points;
+    }
+
 
     @Override
     public void update() {
@@ -173,12 +189,63 @@ public class Bomber extends Entity {
     public void setSpeedBufftime(int speed) {
         this.speedBufftime = speed;
     }
+
+    // CẬP NHẬT phương thức setter để nhận cả hai AudioClip
+    public void setBombSounds(AudioClip bombTickSound, AudioClip explosionSound) {
+        this.bombTickSound = bombTickSound; // LƯU ÂM THANH TICK
+        this.bombExplosionSound = explosionSound;
+    }
+
     // Trong lớp Bomber
     public void placeBomb() {
-        if (bombCount > 0) {
-            Bomb bomb = new Bomb(x, y, this);
+        // Kiểm tra xem vị trí hiện tại đã có bom chưa để tránh đặt chồng
+        if (bombCount > 0 && BombermanGame.getEntitiesAt(x, y).stream().noneMatch(e -> e instanceof Bomb)) {
+            // TRUYỀN CẢ bombExplosionSound VÀ bombTickSound VÀO CONSTRUCTOR CỦA BOMB
+            Bomb bomb = new Bomb(x, y, this, bombExplosionSound, bombTickSound);
             BombermanGame.addEntity(bomb);
             bombCount--;
         }
     }
+
+    // --- Giữ lại phương thức moveWithCollision và align ở đây để không sửa logic di chuyển cũ ---
+    protected boolean moveWithCollision(int dx, int dy) {
+        boolean moved = false;
+        for (int i = 0; i < speed; i++) {
+            // Kiểm tra vị trí pixel tiếp theo
+            if (BombermanGame.validatePixelMove(realX + dx, realY + dy)) {
+                realX += dx;
+                realY += dy;
+                moved = true;
+            } else {
+                // Dừng lại nếu gặp vật cản
+                break;
+            }
+        }
+        return moved;
+    }
+
+    protected void align(int dx, int dy) {
+        if (dx != 0) { // đi ngang → căn trục dọc
+            int remainder = realY % Sprite.SCALED_SIZE;
+            if (remainder != 0) {
+                if (remainder < Sprite.SCALED_SIZE / 2) {
+                    realY -= remainder;
+                } else {
+                    realY += (Sprite.SCALED_SIZE - remainder);
+                }
+            }
+        }
+
+        if (dy != 0) { // đi dọc → căn trục ngang
+            int remainder = realX % Sprite.SCALED_SIZE;
+            if (remainder != 0) {
+                if (remainder < Sprite.SCALED_SIZE / 2) {
+                    realX -= remainder;
+                } else {
+                    realX += (Sprite.SCALED_SIZE - remainder);
+                }
+            }
+        }
+    }
+    // --- Hết phần giữ lại ---
 }
