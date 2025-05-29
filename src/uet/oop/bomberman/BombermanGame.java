@@ -61,7 +61,7 @@ public class BombermanGame extends Application {
 
     private static Portal levelPortal;
 
-    private final int GAME_DURATION_SECONDS = 125;
+    private final int GAME_DURATION_SECONDS = 200;
     private int remainingTime = GAME_DURATION_SECONDS;
     private MainApp mainAppInstance;
 
